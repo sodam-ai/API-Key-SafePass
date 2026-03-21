@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ApiKeyWithTags, Tag, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl } from "../../types";
 import * as api from "../../lib/tauri";
-import { PROVIDER_PRESETS, detectProvider } from "../../lib/providers";
+import { PROVIDER_PRESETS, detectProvider, getProvidersByCategory } from "../../lib/providers";
 
 interface KeyFormModalProps {
   projectId: string;
@@ -95,8 +95,8 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
   };
 
   const handleSave = async () => {
-    if (!name.trim()) { setError("이름을 입력해주세요"); return; }
-    if (!editKey && !value.trim()) { setError("키값을 입력해주세요"); return; }
+    // Auto-generate name if empty
+    const finalName = name.trim() || (provider ? `${provider} API Key` : `API Key ${new Date().toLocaleDateString("ko-KR")}`);
 
     setLoading(true);
     setError("");
@@ -105,7 +105,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
       if (editKey) {
         const input: UpdateApiKeyInput = {
           id: editKey.id,
-          name: name.trim(),
+          name: finalName,
           value: value.trim() || undefined,
           provider: provider.trim() || undefined,
           memo: memo.trim() || undefined,
@@ -119,8 +119,8 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
       } else {
         const input: CreateApiKeyInput = {
           project_id: projectId,
-          name: name.trim(),
-          value: value.trim(),
+          name: finalName,
+          value: value.trim() || "",
           provider: provider.trim() || undefined,
           memo: memo.trim() || undefined,
           service_url: serviceUrl.trim() || undefined,
@@ -182,22 +182,40 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
                                    focus:outline-none focus:border-vault-500 placeholder-zinc-500"
                       />
                     </div>
-                    <div className="overflow-y-auto">
-                      {filteredPresets.map((preset) => (
-                        <button
-                          key={preset.name}
-                          onClick={() => applyPreset(preset)}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 transition-colors flex items-center justify-between"
-                        >
-                          <span className="text-zinc-200">{preset.name}</span>
-                          <span className="text-xs text-zinc-500 font-mono">{preset.envVarName}</span>
-                        </button>
-                      ))}
-                      {filteredPresets.length === 0 && (
-                        <p className="px-3 py-3 text-xs text-zinc-500 text-center">
-                          일치하는 제공자 없음 — 아래에서 직접 입력
-                        </p>
-                      )}
+                    <div className="overflow-y-auto max-h-64">
+                      {(() => {
+                        const { grouped, labels } = getProvidersByCategory();
+                        const categories = ["ai", "cloud", "dev", "payment", "comm"];
+                        const hasResults = filteredPresets.length > 0;
+
+                        if (!hasResults) {
+                          return <p className="px-3 py-3 text-xs text-zinc-500 text-center">일치하는 제공자 없음 — 상세 정보에서 직접 입력</p>;
+                        }
+
+                        return categories.map((cat) => {
+                          const items = (grouped.get(cat) || []).filter((p) =>
+                            p.name.toLowerCase().includes(providerSearch.toLowerCase())
+                          );
+                          if (items.length === 0) return null;
+                          return (
+                            <div key={cat}>
+                              <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-widest bg-zinc-900/50 sticky top-0">
+                                {labels[cat]}
+                              </div>
+                              {items.map((preset) => (
+                                <button
+                                  key={preset.name}
+                                  onClick={() => applyPreset(preset)}
+                                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-700 transition-colors flex items-center justify-between"
+                                >
+                                  <span className="text-zinc-200 text-xs">{preset.name}</span>
+                                  <span className="text-[11px] text-zinc-600 font-mono">{preset.envVarName}</span>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 )}
@@ -217,7 +235,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
           {/* Key Value — moved up for paste-first flow */}
           <div>
             <label className="block text-xs text-zinc-400 mb-1">
-              키값 {editKey ? "(변경 시에만 입력)" : "*"}
+              키값 <span className="text-zinc-600">(나중에 추가해도 됩니다)</span>
             </label>
             <textarea
               placeholder={editKey ? "변경하지 않으려면 비워두세요" : "키를 붙여넣기... (자동으로 제공자를 감지합니다)"}
@@ -231,10 +249,10 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
 
           {/* Name */}
           <div>
-            <label className="block text-xs text-zinc-400 mb-1">이름 *</label>
+            <label className="block text-xs text-zinc-400 mb-1">이름 <span className="text-zinc-600">(비워두면 자동 생성)</span></label>
             <input
               type="text"
-              placeholder="예: OpenAI GPT-4 키"
+              placeholder={provider ? `${provider} API Key` : "비워두면 자동으로 이름이 만들어집니다"}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm
