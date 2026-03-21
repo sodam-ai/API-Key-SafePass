@@ -1,19 +1,17 @@
 import { useEffect, useRef, useCallback } from "react";
 
-const AUTO_LOCK_MS = 2 * 60 * 1000; // 2분 — 보안 강화
-
-export function useAutoLock(onLock: () => void, enabled: boolean) {
+export function useAutoLock(onLock: () => void, enabled: boolean, timeoutMs: number = 2 * 60 * 1000) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (enabled) {
-      timerRef.current = setTimeout(onLock, AUTO_LOCK_MS);
+    if (enabled && timeoutMs > 0) {
+      timerRef.current = setTimeout(onLock, timeoutMs);
     }
-  }, [onLock, enabled]);
+  }, [onLock, enabled, timeoutMs]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || timeoutMs <= 0) return;
 
     const events = ["mousedown", "keydown", "mousemove", "scroll", "touchstart"];
     events.forEach((e) => window.addEventListener(e, resetTimer));
@@ -23,5 +21,5 @@ export function useAutoLock(onLock: () => void, enabled: boolean) {
       if (timerRef.current) clearTimeout(timerRef.current);
       events.forEach((e) => window.removeEventListener(e, resetTimer));
     };
-  }, [resetTimer, enabled]);
+  }, [resetTimer, enabled, timeoutMs]);
 }

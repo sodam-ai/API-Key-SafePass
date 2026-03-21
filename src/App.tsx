@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Project, ApiKeyWithTags } from "./types";
+import type { Project, ApiKeyWithTags, AppPreferences } from "./types";
+import { DEFAULT_PREFS } from "./types";
 import * as api from "./lib/tauri";
 import LockScreen from "./components/Lock/LockScreen";
 import ProjectSidebar from "./components/ProjectSidebar/ProjectSidebar";
@@ -9,6 +10,7 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import SearchModal from "./components/Search/SearchModal";
 import KeyFormModal from "./components/KeyForm/KeyFormModal";
 import ChangePasswordModal from "./components/Settings/ChangePasswordModal";
+import SettingsModal from "./components/Settings/SettingsModal";
 import { useAutoLock } from "./hooks/useAutoLock";
 import { useWindowBlur } from "./hooks/useWindowBlur";
 import { smartMatchAny } from "./lib/search";
@@ -25,8 +27,11 @@ export default function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showGlobalAdd, setShowGlobalAdd] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [inlineSearch, setInlineSearch] = useState("");
-  const isBlurred = useWindowBlur();
+  const [prefs, setPrefs] = useState<AppPreferences>(DEFAULT_PREFS);
+
+  const isBlurred = useWindowBlur(prefs.blurEnabled, prefs.blurDelaySec * 1000);
 
   useEffect(() => {
     (async () => {
@@ -38,6 +43,24 @@ export default function App() {
         setScreen("lock");
       }
     })();
+  }, []);
+
+  // Load preferences after unlock
+  const loadPrefs = useCallback(async () => {
+    try {
+      const [autoLock, clipboard, blur, blurDelay] = await Promise.all([
+        api.getPreference("autoLockMin"),
+        api.getPreference("clipboardClearSec"),
+        api.getPreference("blurEnabled"),
+        api.getPreference("blurDelaySec"),
+      ]);
+      setPrefs({
+        autoLockMin: autoLock ? Number(autoLock) : DEFAULT_PREFS.autoLockMin,
+        clipboardClearSec: clipboard ? Number(clipboard) : DEFAULT_PREFS.clipboardClearSec,
+        blurEnabled: blur ? blur === "1" : DEFAULT_PREFS.blurEnabled,
+        blurDelaySec: blurDelay ? Number(blurDelay) : DEFAULT_PREFS.blurDelaySec,
+      });
+    } catch { /* use defaults */ }
   }, []);
 
   const loadProjects = useCallback(async () => {
@@ -60,8 +83,8 @@ export default function App() {
   }, [selection, allKeys]);
 
   useEffect(() => {
-    if (screen === "main") { loadProjects(); loadAllKeys(); }
-  }, [screen, loadProjects, loadAllKeys]);
+    if (screen === "main") { loadProjects(); loadAllKeys(); loadPrefs(); }
+  }, [screen, loadProjects, loadAllKeys, loadPrefs]);
 
   useEffect(() => {
     if (screen === "main") loadKeys();
@@ -84,7 +107,9 @@ export default function App() {
     } catch (e) { console.error(e); }
   }, []);
 
-  useAutoLock(handleLock, screen === "main");
+  // Auto-lock with configurable timeout
+  const autoLockMs = prefs.autoLockMin > 0 ? prefs.autoLockMin * 60 * 1000 : 0;
+  useAutoLock(handleLock, screen === "main" && autoLockMs > 0, autoLockMs);
 
   const ensureDefaultProject = useCallback(async (): Promise<string> => {
     if (projects.length > 0) return projects[0].id;
@@ -93,7 +118,6 @@ export default function App() {
     return p.id;
   }, [projects, loadProjects]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
@@ -101,7 +125,6 @@ export default function App() {
         if (screen === "main") setShowSearch(true);
       }
       if (e.key === "Escape") setShowSearch(false);
-      // Ctrl+L to lock
       if ((e.ctrlKey || e.metaKey) && e.key === "l") {
         e.preventDefault();
         if (screen === "main") handleLock();
@@ -118,7 +141,6 @@ export default function App() {
     setShowGlobalAdd(true);
   };
 
-  // Filter keys by inline search (한국어/초성/영문/부분 매치)
   const filteredKeys = inlineSearch.trim()
     ? keys.filter((k) => smartMatchAny(inlineSearch, k.name, k.provider, k.env_var_name, k.memo))
     : keys;
@@ -149,18 +171,14 @@ export default function App() {
         onSelect={(s) => { setSelection(s); setInlineSearch(""); }}
         onProjectsChanged={() => { loadProjects(); loadAllKeys(); }}
         onLock={handleLock}
-        onChangePassword={() => setShowChangePassword(true)}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
       <div className="flex-1 flex flex-col h-full">
         {selection.type === "dashboard" ? (
-          <Dashboard
-            projects={projects}
-            onSelectProject={(id) => setSelection({ type: "project", id })}
-          />
+          <Dashboard projects={projects} onSelectProject={(id) => setSelection({ type: "project", id })} />
         ) : (
           <>
-            {/* Inline search bar */}
             <div className="px-6 pt-4 pb-2">
               <div className="relative">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -176,23 +194,19 @@ export default function App() {
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   {inlineSearch && (
-                    <span className="text-[11px] text-zinc-500 tabular-nums">
-                      {filteredKeys.length}/{keys.length}
-                    </span>
+                    <span className="text-[11px] text-zinc-500 tabular-nums">{filteredKeys.length}/{keys.length}</span>
                   )}
-                  <kbd className="px-1.5 py-0.5 bg-zinc-800/60 rounded text-[10px] text-zinc-600 border border-zinc-700/50">
-                    Ctrl+K
-                  </kbd>
+                  <kbd className="px-1.5 py-0.5 bg-zinc-800/60 rounded text-[10px] text-zinc-600 border border-zinc-700/50">Ctrl+K</kbd>
                 </div>
               </div>
             </div>
-
             <KeyList
               projectId={selection.type === "project" ? selection.id : null}
               platformName={selection.type === "platform" ? selection.id : null}
               isAllView={selection.type === "all"}
               projects={projects}
               keys={filteredKeys}
+              clipboardClearSec={prefs.clipboardClearSec}
               onKeysChanged={handleRefresh}
               onAddKey={handleGlobalAdd}
             />
@@ -200,8 +214,7 @@ export default function App() {
         )}
       </div>
 
-      {/* Floating add button */}
-      {selection.type !== "dashboard" && !showGlobalAdd && !showSearch && !showChangePassword && (
+      {selection.type !== "dashboard" && !showGlobalAdd && !showSearch && !showSettings && !showChangePassword && (
         <button
           onClick={handleGlobalAdd}
           className="fixed bottom-6 right-6 w-14 h-14 bg-vault-600 hover:bg-vault-500 rounded-full shadow-lg shadow-vault-600/30
@@ -214,30 +227,24 @@ export default function App() {
         </button>
       )}
 
-      {/* Global Add Modal */}
       {showGlobalAdd && activeProjectId && (
-        <KeyFormModal
-          projectId={activeProjectId}
-          onClose={() => setShowGlobalAdd(false)}
-          onSaved={() => { setShowGlobalAdd(false); handleRefresh(); }}
+        <KeyFormModal projectId={activeProjectId} onClose={() => setShowGlobalAdd(false)} onSaved={() => { setShowGlobalAdd(false); handleRefresh(); }} />
+      )}
+
+      {showSettings && (
+        <SettingsModal
+          prefs={prefs}
+          onClose={() => setShowSettings(false)}
+          onSaved={(p) => { setPrefs(p); setShowSettings(false); }}
+          onChangePassword={() => { setShowSettings(false); setTimeout(() => setShowChangePassword(true), 100); }}
         />
       )}
 
-      {/* Change Password Modal */}
       {showChangePassword && (
-        <ChangePasswordModal
-          onClose={() => setShowChangePassword(false)}
-          onChanged={() => setShowChangePassword(false)}
-        />
+        <ChangePasswordModal onClose={() => setShowChangePassword(false)} onChanged={() => setShowChangePassword(false)} />
       )}
 
-      {/* Ctrl+K Search Modal */}
-      {showSearch && (
-        <SearchModal
-          projects={projects}
-          onClose={() => setShowSearch(false)}
-        />
-      )}
+      {showSearch && <SearchModal projects={projects} onClose={() => setShowSearch(false)} />}
     </div>
   );
 }

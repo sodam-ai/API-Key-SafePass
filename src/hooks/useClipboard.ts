@@ -1,33 +1,22 @@
 import { useCallback, useRef } from "react";
 import { writeText, readText, clear } from "@tauri-apps/plugin-clipboard-manager";
 
-const CLEAR_DELAY_MS = 10_000; // 10초 — 보안 강화
-
-export function useClipboard() {
+export function useClipboard(clearDelayMs: number = 10_000) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const copyWithAutoClear = useCallback(async (text: string) => {
-    // Clear any previous timer
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
+    if (timerRef.current) clearTimeout(timerRef.current);
 
     await writeText(text);
 
-    // Schedule clipboard clear after 30 seconds
     timerRef.current = setTimeout(async () => {
       try {
         const current = await readText();
-        // Only clear if clipboard still contains the same value
-        if (current === text) {
-          await clear();
-        }
-      } catch {
-        // Clipboard may already be cleared or inaccessible
-      }
+        if (current === text) await clear();
+      } catch { /* ignore */ }
       timerRef.current = null;
-    }, CLEAR_DELAY_MS);
-  }, []);
+    }, clearDelayMs);
+  }, [clearDelayMs]);
 
   return { copyWithAutoClear };
 }

@@ -371,6 +371,20 @@ pub fn get_recent_logs(state: State<AppState>, limit: i64) -> Result<Vec<UsageLo
     db::get_recent_logs(&conn, limit).map_err(err_to_string)
 }
 
+// ========== User Preferences ==========
+
+#[tauri::command]
+pub fn get_preference(state: State<AppState>, key: String) -> Result<Option<String>, String> {
+    let conn = state.db.lock().map_err(err_to_string)?;
+    db::get_setting(&conn, &format!("pref_{}", key)).map_err(err_to_string)
+}
+
+#[tauri::command]
+pub fn set_preference(state: State<AppState>, key: String, value: String) -> Result<(), String> {
+    let conn = state.db.lock().map_err(err_to_string)?;
+    db::set_setting(&conn, &format!("pref_{}", key), &value).map_err(err_to_string)
+}
+
 // ========== Stats ==========
 
 #[tauri::command]

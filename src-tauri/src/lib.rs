@@ -62,6 +62,8 @@ pub fn run() {
             commands::delete_tag,
             commands::get_recent_logs,
             commands::get_stats,
+            commands::get_preference,
+            commands::set_preference,
         ])
         .run(tauri::generate_context!())
         .expect("API Key SafePass 실행 중 오류 발생");

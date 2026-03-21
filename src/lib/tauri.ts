@@ -46,5 +46,9 @@ export const deleteTag = (id: string) => invoke<void>("delete_tag", { id });
 // --- Logs ---
 export const getRecentLogs = (limit: number) => invoke<UsageLogWithKeyName[]>("get_recent_logs", { limit });
 
+// --- Preferences ---
+export const getPreference = (key: string) => invoke<string | null>("get_preference", { key });
+export const setPreference = (key: string, value: string) => invoke<void>("set_preference", { key, value });
+
 // --- Stats ---
 export const getStats = () => invoke<Stats>("get_stats");

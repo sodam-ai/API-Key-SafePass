@@ -1,21 +1,21 @@
 import { useEffect, useState, useRef } from "react";
 
-const BLUR_DELAY_MS = 3000; // 3초 후에 blur 처리
-
-/** 앱이 포커스를 잃고 3초 이상 지나면 민감 데이터를 숨김 */
-export function useWindowBlur() {
+export function useWindowBlur(enabled: boolean = true, delayMs: number = 3000) {
   const [isBlurred, setIsBlurred] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (!enabled) { setIsBlurred(false); return; }
+
     const handleBlur = () => {
-      timerRef.current = setTimeout(() => setIsBlurred(true), BLUR_DELAY_MS);
+      if (delayMs <= 0) {
+        setIsBlurred(true);
+      } else {
+        timerRef.current = setTimeout(() => setIsBlurred(true), delayMs);
+      }
     };
     const handleFocus = () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
       setIsBlurred(false);
     };
     window.addEventListener("blur", handleBlur);
@@ -25,7 +25,7 @@ export function useWindowBlur() {
       window.removeEventListener("blur", handleBlur);
       window.removeEventListener("focus", handleFocus);
     };
-  }, []);
+  }, [enabled, delayMs]);
 
   return isBlurred;
 }

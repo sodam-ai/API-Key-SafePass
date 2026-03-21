@@ -81,6 +81,20 @@ export interface CreateTagInput {
   color?: string;
 }
 
+export interface AppPreferences {
+  autoLockMin: number;        // 0 = disabled
+  clipboardClearSec: number;
+  blurEnabled: boolean;
+  blurDelaySec: number;
+}
+
+export const DEFAULT_PREFS: AppPreferences = {
+  autoLockMin: 5,
+  clipboardClearSec: 10,
+  blurEnabled: true,
+  blurDelaySec: 3,
+};
+
 export interface Stats {
   total_keys: number;
   total_projects: number;

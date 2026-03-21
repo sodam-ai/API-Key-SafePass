@@ -13,17 +13,18 @@ interface KeyListProps {
   isAllView?: boolean;
   projects: Project[];
   keys: ApiKeyWithTags[];
+  clipboardClearSec?: number;
   onKeysChanged: () => void;
   onAddKey?: () => void;
 }
 
-export default function KeyList({ projectId, platformName, isAllView, projects, keys, onKeysChanged, onAddKey }: KeyListProps) {
+export default function KeyList({ projectId, platformName, isAllView, projects, keys, clipboardClearSec = 10, onKeysChanged, onAddKey }: KeyListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editKey, setEditKey] = useState<ApiKeyWithTags | null>(null);
   const [quickUpdateKey, setQuickUpdateKey] = useState<ApiKeyWithTags | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
-  const { copyWithAutoClear } = useClipboard();
+  const { copyWithAutoClear } = useClipboard(clipboardClearSec * 1000);
 
   const handleCopy = async (keyId: string) => {
     try {
