@@ -5,7 +5,7 @@
   "identifier": "com.apikeyvault.app",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:4213",
+    "devUrl": "http://localhost:7845",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },

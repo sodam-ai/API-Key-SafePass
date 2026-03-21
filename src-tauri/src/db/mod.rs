@@ -73,6 +73,7 @@ pub fn init_db(conn: &Connection) -> SqlResult<()> {
     // Migrations for older schemas
     let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN service_url TEXT", []);
     let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN env_var_name TEXT", []);
+    let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN reference_urls TEXT", []);
 
     Ok(())
 }
@@ -134,14 +135,14 @@ pub fn delete_project(conn: &Connection, id: &str) -> SqlResult<()> {
 
 // --- ApiKey ---
 
-const API_KEY_COLS: &str = "id, project_id, name, provider, memo, service_url, env_var_name, expires_at, last_used_at, created_at, updated_at";
+const API_KEY_COLS: &str = "id, project_id, name, provider, memo, service_url, env_var_name, expires_at, last_used_at, created_at, updated_at, reference_urls";
 
 fn row_to_api_key(row: &rusqlite::Row) -> rusqlite::Result<ApiKey> {
     Ok(ApiKey {
         id: row.get(0)?, project_id: row.get(1)?, name: row.get(2)?,
         provider: row.get(3)?, memo: row.get(4)?, service_url: row.get(5)?,
         env_var_name: row.get(6)?, expires_at: row.get(7)?, last_used_at: row.get(8)?,
-        created_at: row.get(9)?, updated_at: row.get(10)?,
+        created_at: row.get(9)?, updated_at: row.get(10)?, reference_urls: row.get(11)?,
     })
 }
 
@@ -158,14 +159,14 @@ pub fn create_api_key(conn: &Connection, input: &CreateApiKeyInput, encrypted_va
     let id = format!("key-{}", uuid::Uuid::new_v4());
     let now = chrono::Utc::now().to_rfc3339();
     conn.execute(
-        "INSERT INTO api_keys (id, project_id, name, encrypted_value, provider, memo, service_url, env_var_name, expires_at, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10)",
-        params![id, input.project_id, input.name, encrypted_value, input.provider, input.memo, input.service_url, input.env_var_name, input.expires_at, now],
+        "INSERT INTO api_keys (id, project_id, name, encrypted_value, provider, memo, service_url, env_var_name, expires_at, reference_urls, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11)",
+        params![id, input.project_id, input.name, encrypted_value, input.provider, input.memo, input.service_url, input.env_var_name, input.expires_at, input.reference_urls, now],
     )?;
     for tag_id in &input.tag_ids {
         conn.execute("INSERT OR IGNORE INTO api_key_tags (api_key_id, tag_id) VALUES (?1, ?2)", params![id, tag_id])?;
     }
-    Ok(ApiKey { id, project_id: input.project_id.clone(), name: input.name.clone(), provider: input.provider.clone(), memo: input.memo.clone(), service_url: input.service_url.clone(), env_var_name: input.env_var_name.clone(), expires_at: input.expires_at.clone(), last_used_at: None, created_at: now.clone(), updated_at: now })
+    Ok(ApiKey { id, project_id: input.project_id.clone(), name: input.name.clone(), provider: input.provider.clone(), memo: input.memo.clone(), service_url: input.service_url.clone(), env_var_name: input.env_var_name.clone(), expires_at: input.expires_at.clone(), last_used_at: None, reference_urls: input.reference_urls.clone(), created_at: now.clone(), updated_at: now })
 }
 
 pub fn list_api_keys(conn: &Connection, project_id: &str) -> SqlResult<Vec<ApiKeyWithTags>> {
@@ -201,13 +202,13 @@ pub fn update_api_key(conn: &Connection, input: &UpdateApiKeyInput, encrypted_va
     let now = chrono::Utc::now().to_rfc3339();
     if let Some(ev) = encrypted_value {
         conn.execute(
-            "UPDATE api_keys SET name=?1, encrypted_value=?2, provider=?3, memo=?4, service_url=?5, env_var_name=?6, expires_at=?7, updated_at=?8 WHERE id=?9",
-            params![input.name, ev, input.provider, input.memo, input.service_url, input.env_var_name, input.expires_at, now, input.id],
+            "UPDATE api_keys SET name=?1, encrypted_value=?2, provider=?3, memo=?4, service_url=?5, env_var_name=?6, expires_at=?7, reference_urls=?8, updated_at=?9 WHERE id=?10",
+            params![input.name, ev, input.provider, input.memo, input.service_url, input.env_var_name, input.expires_at, input.reference_urls, now, input.id],
         )?;
     } else {
         conn.execute(
-            "UPDATE api_keys SET name=?1, provider=?2, memo=?3, service_url=?4, env_var_name=?5, expires_at=?6, updated_at=?7 WHERE id=?8",
-            params![input.name, input.provider, input.memo, input.service_url, input.env_var_name, input.expires_at, now, input.id],
+            "UPDATE api_keys SET name=?1, provider=?2, memo=?3, service_url=?4, env_var_name=?5, expires_at=?6, reference_urls=?7, updated_at=?8 WHERE id=?9",
+            params![input.name, input.provider, input.memo, input.service_url, input.env_var_name, input.expires_at, input.reference_urls, now, input.id],
         )?;
     }
     conn.execute("DELETE FROM api_key_tags WHERE api_key_id = ?1", params![input.id])?;

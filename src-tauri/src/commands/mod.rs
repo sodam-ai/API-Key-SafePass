@@ -319,12 +319,13 @@ pub fn import_env(state: State<AppState>, project_id: String, content: String) -
             let input = CreateApiKeyInput {
                 project_id: project_id.clone(),
                 name: var_name.clone(),
-                value: String::new(), // not used directly
+                value: String::new(),
                 provider: None,
                 memo: Some("Imported from .env".to_string()),
                 service_url: None,
                 env_var_name: Some(var_name),
                 expires_at: None,
+                reference_urls: None,
                 tag_ids: vec![],
             };
             db::create_api_key(&conn, &input, &encrypted).map_err(err_to_string)?;

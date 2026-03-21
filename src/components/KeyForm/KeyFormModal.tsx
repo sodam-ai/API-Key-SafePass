@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { ApiKeyWithTags, Tag, CreateApiKeyInput, UpdateApiKeyInput } from "../../types";
+import type { ApiKeyWithTags, Tag, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl } from "../../types";
 import * as api from "../../lib/tauri";
 import { PROVIDER_PRESETS, detectProvider } from "../../lib/providers";
 
@@ -21,6 +21,9 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [newTagName, setNewTagName] = useState("");
+  const [referenceUrls, setReferenceUrls] = useState<ReferenceUrl[]>([]);
+  const [newRefLabel, setNewRefLabel] = useState("");
+  const [newRefUrl, setNewRefUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showDetails, setShowDetails] = useState(false);
@@ -38,6 +41,9 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
       setEnvVarName(editKey.env_var_name || "");
       setExpiresAt(editKey.expires_at?.split("T")[0] || "");
       setSelectedTagIds(editKey.tags.map((t) => t.id));
+      if (editKey.reference_urls) {
+        try { setReferenceUrls(JSON.parse(editKey.reference_urls)); } catch { /* ignore */ }
+      }
       setShowDetails(true);
     }
   }, [editKey]);
@@ -95,6 +101,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
     setLoading(true);
     setError("");
     try {
+      const refUrlsJson = referenceUrls.length > 0 ? JSON.stringify(referenceUrls) : undefined;
       if (editKey) {
         const input: UpdateApiKeyInput = {
           id: editKey.id,
@@ -105,6 +112,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
           service_url: serviceUrl.trim() || undefined,
           env_var_name: envVarName.trim() || undefined,
           expires_at: expiresAt || undefined,
+          reference_urls: refUrlsJson,
           tag_ids: selectedTagIds,
         };
         await api.updateApiKey(input);
@@ -118,6 +126,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
           service_url: serviceUrl.trim() || undefined,
           env_var_name: envVarName.trim() || undefined,
           expires_at: expiresAt || undefined,
+          reference_urls: refUrlsJson,
           tag_ids: selectedTagIds,
         };
         await api.createApiKey(input);
@@ -273,6 +282,68 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
                          focus:outline-none focus:border-vault-500 placeholder-zinc-500"
             />
             <p className="text-xs text-zinc-600 mt-1">키 재발급이 필요할 때 바로 열 수 있습니다</p>
+          </div>
+
+          {/* Reference URLs */}
+          <div>
+            <label className="block text-xs text-zinc-400 mb-1.5">참고 URL</label>
+            {referenceUrls.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {referenceUrls.map((ref, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-zinc-800/60 rounded-lg px-3 py-1.5">
+                    <span className="text-xs text-zinc-300 font-medium truncate w-20">{ref.label}</span>
+                    <span className="text-xs text-zinc-500 truncate flex-1">{ref.url}</span>
+                    <button
+                      onClick={() => setReferenceUrls(referenceUrls.filter((_, j) => j !== i))}
+                      className="p-0.5 rounded hover:bg-red-900/40 text-zinc-600 hover:text-red-400 flex-shrink-0 transition-colors"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="라벨 (예: 문서)"
+                value={newRefLabel}
+                onChange={(e) => setNewRefLabel(e.target.value)}
+                className="w-24 px-2.5 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-xs
+                           focus:outline-none focus:border-vault-500 placeholder-zinc-600"
+              />
+              <input
+                type="url"
+                placeholder="https://..."
+                value={newRefUrl}
+                onChange={(e) => setNewRefUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newRefUrl.trim()) {
+                    e.preventDefault();
+                    setReferenceUrls([...referenceUrls, { label: newRefLabel.trim() || "링크", url: newRefUrl.trim() }]);
+                    setNewRefLabel("");
+                    setNewRefUrl("");
+                  }
+                }}
+                className="flex-1 px-2.5 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-xs
+                           focus:outline-none focus:border-vault-500 placeholder-zinc-600"
+              />
+              <button
+                onClick={() => {
+                  if (!newRefUrl.trim()) return;
+                  setReferenceUrls([...referenceUrls, { label: newRefLabel.trim() || "링크", url: newRefUrl.trim() }]);
+                  setNewRefLabel("");
+                  setNewRefUrl("");
+                }}
+                disabled={!newRefUrl.trim()}
+                className="px-2.5 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs disabled:opacity-40 transition-colors flex-shrink-0"
+              >
+                추가
+              </button>
+            </div>
+            <p className="text-[11px] text-zinc-600 mt-1">문서, 요금 페이지, 대시보드 등 참고할 URL</p>
           </div>
 
           {/* More details toggle */}

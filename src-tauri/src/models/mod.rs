@@ -21,6 +21,7 @@ pub struct ApiKey {
     pub env_var_name: Option<String>,
     pub expires_at: Option<String>,
     pub last_used_at: Option<String>,
+    pub reference_urls: Option<String>, // JSON: [{"label":"문서","url":"https://..."}]
     pub created_at: String,
     pub updated_at: String,
 }
@@ -66,6 +67,7 @@ pub struct CreateApiKeyInput {
     pub service_url: Option<String>,
     pub env_var_name: Option<String>,
     pub expires_at: Option<String>,
+    pub reference_urls: Option<String>,
     pub tag_ids: Vec<String>,
 }
 
@@ -79,6 +81,7 @@ pub struct UpdateApiKeyInput {
     pub service_url: Option<String>,
     pub env_var_name: Option<String>,
     pub expires_at: Option<String>,
+    pub reference_urls: Option<String>,
     pub tag_ids: Vec<String>,
 }
 

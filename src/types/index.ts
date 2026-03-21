@@ -17,8 +17,14 @@ export interface ApiKey {
   env_var_name: string | null;
   expires_at: string | null;
   last_used_at: string | null;
+  reference_urls: string | null; // JSON: [{"label":"문서","url":"https://..."}]
   created_at: string;
   updated_at: string;
+}
+
+export interface ReferenceUrl {
+  label: string;
+  url: string;
 }
 
 export interface Tag {
@@ -53,6 +59,7 @@ export interface CreateApiKeyInput {
   service_url?: string;
   env_var_name?: string;
   expires_at?: string;
+  reference_urls?: string;
   tag_ids: string[];
 }
 
@@ -65,6 +72,7 @@ export interface UpdateApiKeyInput {
   service_url?: string;
   env_var_name?: string;
   expires_at?: string;
+  reference_urls?: string;
   tag_ids: string[];
 }
 

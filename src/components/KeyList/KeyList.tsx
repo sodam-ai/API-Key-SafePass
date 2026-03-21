@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ApiKeyWithTags, Project } from "../../types";
+import type { ApiKeyWithTags, Project, ReferenceUrl } from "../../types";
 import * as api from "../../lib/tauri";
 import { useClipboard } from "../../hooks/useClipboard";
 import { daysUntilExpiry, expiryColor, expiryBg, expiryText, relativeDate } from "../../lib/utils";
@@ -215,6 +215,30 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
                             <span className="text-[11px] text-zinc-600">사용 {relativeDate(k.last_used_at)}</span>
                           )}
                         </div>
+
+                        {/* Reference URLs */}
+                        {k.reference_urls && (() => {
+                          try {
+                            const refs: ReferenceUrl[] = JSON.parse(k.reference_urls);
+                            if (refs.length === 0) return null;
+                            return (
+                              <div className="flex items-center gap-2 pl-4 mt-1.5 flex-wrap">
+                                {refs.map((ref, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => window.open(ref.url, "_blank")}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] text-vault-400 hover:text-vault-300 bg-vault-600/10 hover:bg-vault-600/20 border border-vault-600/20 transition-colors"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                    </svg>
+                                    {ref.label}
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          } catch { return null; }
+                        })()}
                       </div>
 
                       {/* Right: Actions */}
