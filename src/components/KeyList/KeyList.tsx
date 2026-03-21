@@ -200,14 +200,6 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
                               {projects.find((p) => p.id === k.project_id)?.name || ""}
                             </span>
                           )}
-                          {k.tags.map((tag) => (
-                            <span
-                              key={tag.id}
-                              className="px-2 py-0.5 rounded-full text-[11px] text-zinc-500 bg-zinc-800/60"
-                            >
-                              #{tag.name}
-                            </span>
-                          ))}
                           {k.updated_at && k.updated_at !== k.created_at && (
                             <span className="text-[11px] text-zinc-600">변경 {relativeDate(k.updated_at)}</span>
                           )}

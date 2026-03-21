@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { ApiKeyWithTags, Tag, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl } from "../../types";
+import type { ApiKeyWithTags, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl } from "../../types";
 import * as api from "../../lib/tauri";
 import { PROVIDER_PRESETS, detectProvider, getProvidersByCategory, matchProvider } from "../../lib/providers";
 
@@ -19,8 +19,6 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
   const [envVarName, setEnvVarName] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [allTags, setAllTags] = useState<Tag[]>([]);
-  const [newTagName, setNewTagName] = useState("");
   const [referenceUrls, setReferenceUrls] = useState<ReferenceUrl[]>([]);
   const [newRefLabel, setNewRefLabel] = useState("");
   const [newRefUrl, setNewRefUrl] = useState("");
@@ -31,7 +29,6 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
   const [autoDetected, setAutoDetected] = useState(false);
 
   useEffect(() => {
-    api.listTags().then(setAllTags).catch(console.error);
     if (editKey) {
       setName(editKey.name);
       setProvider(editKey.provider || "");
@@ -39,7 +36,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
       setServiceUrl(editKey.service_url || "");
       setEnvVarName(editKey.env_var_name || "");
       setExpiresAt(editKey.expires_at?.split("T")[0] || "");
-      setSelectedTagIds(editKey.tags.map((t) => t.id));
+      setSelectedTagIds(editKey.tags?.map((t) => t.id) || []);
       if (editKey.reference_urls) {
         try { setReferenceUrls(JSON.parse(editKey.reference_urls)); } catch { /* ignore */ }
       }
@@ -71,24 +68,6 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
   };
 
   const filteredPresets = PROVIDER_PRESETS.filter((p) => matchProvider(p, providerSearch));
-
-  const toggleTag = (tagId: string) => {
-    setSelectedTagIds((prev) =>
-      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
-    );
-  };
-
-  const handleAddTag = async () => {
-    if (!newTagName.trim()) return;
-    try {
-      const tag = await api.createTag({ name: newTagName.trim() });
-      setAllTags((prev) => [...prev, tag]);
-      setSelectedTagIds((prev) => [...prev, tag.id]);
-      setNewTagName("");
-    } catch (e) {
-      alert(String(e));
-    }
-  };
 
   const handleSave = async () => {
     // Auto-generate name if empty
@@ -417,43 +396,6 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
                 />
               </div>
 
-              {/* Tags */}
-              <div>
-                <label className="block text-xs text-zinc-400 mb-1">태그</label>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {allTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      onClick={() => toggleTag(tag.id)}
-                      className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
-                        selectedTagIds.includes(tag.id)
-                          ? "bg-vault-600 text-white"
-                          : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                      }`}
-                    >
-                      #{tag.name}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="새 태그 이름"
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
-                    className="flex-1 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs
-                               focus:outline-none focus:border-vault-500 placeholder-zinc-500"
-                  />
-                  <button
-                    onClick={handleAddTag}
-                    disabled={!newTagName.trim()}
-                    className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded text-xs disabled:opacity-50 transition-colors"
-                  >
-                    추가
-                  </button>
-                </div>
-              </div>
           </div>
         </div>
 
