@@ -11,6 +11,7 @@ import KeyFormModal from "./components/KeyForm/KeyFormModal";
 import ChangePasswordModal from "./components/Settings/ChangePasswordModal";
 import { useAutoLock } from "./hooks/useAutoLock";
 import { useWindowBlur } from "./hooks/useWindowBlur";
+import { smartMatchAny } from "./lib/search";
 
 type AppScreen = "loading" | "lock" | "main";
 
@@ -117,17 +118,9 @@ export default function App() {
     setShowGlobalAdd(true);
   };
 
-  // Filter keys by inline search
+  // Filter keys by inline search (한국어/초성/영문/부분 매치)
   const filteredKeys = inlineSearch.trim()
-    ? keys.filter((k) => {
-        const q = inlineSearch.toLowerCase();
-        return (
-          k.name.toLowerCase().includes(q) ||
-          (k.provider || "").toLowerCase().includes(q) ||
-          (k.env_var_name || "").toLowerCase().includes(q) ||
-          (k.memo || "").toLowerCase().includes(q)
-        );
-      })
+    ? keys.filter((k) => smartMatchAny(inlineSearch, k.name, k.provider, k.env_var_name, k.memo))
     : keys;
 
   const activeProjectId =
@@ -175,7 +168,7 @@ export default function App() {
                 </svg>
                 <input
                   type="text"
-                  placeholder="키 검색... (이름, 제공자, 변수명, 메모)"
+                  placeholder="검색... (한글, 영문, 초성 ㅇㅍ, 변수명, 메모)"
                   value={inlineSearch}
                   onChange={(e) => setInlineSearch(e.target.value)}
                   className="w-full pl-10 pr-20 py-2.5 bg-zinc-900/60 border border-zinc-800/60 rounded-xl text-sm

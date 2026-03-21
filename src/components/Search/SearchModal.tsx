@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import type { ApiKeyWithTags, Project } from "../../types";
 import * as api from "../../lib/tauri";
 import { useClipboard } from "../../hooks/useClipboard";
+import { smartMatchAny } from "../../lib/search";
 
 interface SearchModalProps {
   projects: Project[];
@@ -27,8 +28,22 @@ export default function SearchModal({ projects, onClose }: SearchModalProps) {
     }
     const timer = setTimeout(async () => {
       try {
-        const r = await api.searchApiKeys(query.trim());
-        setResults(r);
+        // 서버 검색 (SQL LIKE) + 전체 목록에서 초성/한글 매치
+        const [serverResults, allKeys] = await Promise.all([
+          api.searchApiKeys(query.trim()),
+          api.listAllApiKeys(),
+        ]);
+        // 초성/한글 클라이언트 필터링
+        const clientResults = allKeys.filter((k) =>
+          smartMatchAny(query, k.name, k.provider, k.env_var_name, k.memo)
+        );
+        // 합치기 (중복 제거)
+        const seen = new Set<string>();
+        const merged: ApiKeyWithTags[] = [];
+        for (const k of [...serverResults, ...clientResults]) {
+          if (!seen.has(k.id)) { seen.add(k.id); merged.push(k); }
+        }
+        setResults(merged);
         setSelectedIndex(0);
       } catch {
         setResults([]);
@@ -82,7 +97,7 @@ export default function SearchModal({ projects, onClose }: SearchModalProps) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="키 이름, 제공자, 태그로 검색..."
+            placeholder="검색... (한글, 영문, 초성 ㅇㅍ, 변수명)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -134,7 +149,7 @@ export default function SearchModal({ projects, onClose }: SearchModalProps) {
         {/* Footer */}
         {!query.trim() && (
           <div className="px-4 py-3 border-t border-zinc-800 text-xs text-zinc-600 text-center">
-            키 이름, API 제공자, 또는 태그로 검색하세요
+            한글, 영문, 초성(ㅇㅍ), 변수명으로 검색하세요
           </div>
         )}
       </div>
