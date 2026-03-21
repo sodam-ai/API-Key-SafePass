@@ -16,6 +16,19 @@ If you use AI services like ChatGPT, Claude, Gemini, or any cloud platform, you 
 
 ---
 
+## Download & Install
+
+### Windows
+
+1. Go to [Releases](../../releases) page
+2. Download `API.Key.SafePass_x64-setup.exe` (recommended) or `.msi`
+3. Run the installer
+4. Open **API Key SafePass** from Start Menu
+
+> App size: ~2.5 MB. No internet connection required.
+
+---
+
 ## Features
 
 ### Core
@@ -25,66 +38,101 @@ If you use AI services like ChatGPT, Claude, Gemini, or any cloud platform, you 
 - **Projects** — Organize keys by project (e.g., "My Blog", "Shopping App")
 
 ### Convenience
-- **100+ Provider Presets** — OpenAI, Anthropic, Google, AWS, Stripe, and more
+- **100+ Provider Presets** — OpenAI, Anthropic, Google, AWS, Stripe, and 100 more
 - **Auto-Detection** — Paste a key and the provider is detected automatically
 - **Korean/English/Chosung Search** — Search by "오픈" or "ㅇㅍ" to find OpenAI
+- **Inline Search** — Always-visible search bar at the top, with result count
 - **Quick Key Update** — Change a key value without opening the full edit form
 - **Reissue Flow** — Expired keys show a "Reissue" button that opens the service page
 - **Reference URLs** — Save documentation, pricing, dashboard links with each key
 - **.env Export** — Generate .env files from your project keys in one click
 - **.env Import** — Import existing .env files into SafePass
+- **Custom Providers** — Add any provider not in the preset list
+- **No Required Fields** — Save with just a key value, or even without one (add later)
 
 ### Security
 - **Local Only** — No server, no cloud, no network (keys never leave your PC)
-- **Auto-Lock** — Configurable timeout (1/2/5/10/30 min)
+- **Auto-Lock** — Configurable timeout (1/2/5/10/30 min or off)
 - **Clipboard Auto-Clear** — Configurable timeout (5/10/15/30/60 sec)
-- **Screen Blur Protection** — Blurs the app when you switch windows (configurable)
+- **Screen Blur Protection** — Blurs the app when you switch windows (configurable delay, can be disabled)
 - **Screenshot Protection** — OS-level screen capture prevention
-- **Brute Force Protection** — Backend-enforced lockout (5 fails = 60s, persisted in DB)
-- **Recovery Key Rate Limiting** — 3 fails = 5 min lockout
+- **Brute Force Protection** — Backend-enforced lockout persisted in DB (survives app restart)
+  - Password: 5 fails → 60 sec lockout
+  - Recovery key: 3 fails → 5 min lockout
 - **Memory Zeroing** — Encryption key wiped from memory on lock
 - **URL Validation** — Only http/https URLs allowed (blocks javascript: injection)
 - **Transaction Safety** — Password changes are atomic (no data corruption on crash)
-- **DevTools Blocked** — F12, Ctrl+Shift+I, view source all disabled
+- **CSP Headers** — Content Security Policy blocks XSS attacks
+- **DevTools Blocked** — F12, Ctrl+Shift+I, Ctrl+U all disabled
 - **Print/Save Blocked** — Ctrl+P, Ctrl+S disabled to prevent data leaks
+- **Settings Allowlist** — Only 4 whitelisted preference keys accepted by backend
+- **Error Sanitization** — Internal errors never exposed to frontend
 
-### Settings
+### Settings (User-configurable)
 - Auto-lock timeout
 - Clipboard clear time
-- Screen blur on/off + delay
-- Master password change
+- Screen blur on/off + delay (instant / 3s / 5s / 10s)
+- Master password change (with strength indicator)
 
 ---
 
-## Quick Start (for non-developers)
+## Quick Start Guide
+
+> This guide is for **complete beginners** — no coding experience needed.
 
 ### Step 1: Install
 
-1. Download `API Key SafePass_0.1.0_x64_en-US.msi` from the project folder
-2. Double-click the file to install
-3. Follow the installation wizard
+1. Download the installer from the [Releases](../../releases) page
+2. Double-click `API.Key.SafePass_x64-setup.exe`
+3. Follow the installation wizard (just click "Next")
+4. The app appears in your Start Menu
 
-### Step 2: Set Up
+### Step 2: Create Your Master Password
 
-1. Open **API Key SafePass** from Start Menu or Desktop
-2. Create a **master password** (6+ characters)
-3. **Save the recovery key** that appears — copy it to a safe place (you won't see it again!)
-4. Click "Confirm, I saved it"
+1. Open **API Key SafePass**
+2. You'll see the lock screen — this is your first time, so create a password
+3. Type a password (at least 6 characters) and confirm it
+4. **IMPORTANT**: A **recovery key** will appear on screen
+   - Copy this key to a safe place (password manager, printed paper, etc.)
+   - **You will never see this key again!**
+   - If you forget your master password, this is the ONLY way to recover
+5. Click "Confirm, I saved it"
 
-### Step 3: Add Your First Key
+### Step 3: Add Your First API Key
 
-1. Click the big **+** button (bottom right corner)
-2. **Select a provider** from the dropdown (e.g., OpenAI, Claude, Gemini)
-   - Or just paste your key — the provider is detected automatically!
-3. The name, .env variable, and service URL are filled in for you
+**Method 1: Select a provider first**
+1. Click the big **+** button (bottom right)
+2. Click the "Provider" dropdown
+3. Search for your service (e.g., type "OpenAI" or "오픈")
+4. Click to select — name, URL, and .env variable are filled automatically
+5. Paste your API key
+6. Click **Save**
+
+**Method 2: Paste first (auto-detect)**
+1. Click the big **+** button
+2. Paste your API key into the "Key value" field
+3. If the key starts with a known prefix (like `sk-` for OpenAI), the provider is detected automatically
 4. Click **Save**
 
-### Step 4: Use Your Keys
+**Method 3: Save now, add key later**
+1. Click the big **+** button
+2. Select a provider
+3. Click **Save** (even without a key value)
+4. Add the key later using the quick update button (🔄)
 
-- **Copy a key**: Click the "Copy" button on any key card → auto-clears from clipboard
-- **Search**: Type in the search bar (Korean, English, consonants all work)
-- **Quick search**: Press `Ctrl+K` for the search modal
-- **Lock**: Press `Ctrl+L` or click "Lock" in the sidebar
+### Step 4: Daily Usage
+
+| What you want to do | How |
+|---------------------|-----|
+| **Copy a key** | Click "Copy" on the key card (auto-clears from clipboard) |
+| **Search for a key** | Type in the search bar at the top |
+| **Quick search + copy** | Press `Ctrl+K`, type, press `Enter` to copy |
+| **Lock the app** | Press `Ctrl+L` or click "Lock" in sidebar |
+| **Update a key value** | Hover over the card → click 🔄 → paste new key |
+| **Reissue an expired key** | Click the red "Reissue" button → opens service page |
+| **Export .env file** | Select a project → click ".env" button in header |
+| **Change password** | Sidebar → ⚙ Settings → "Change master password" |
+| **Adjust security** | Sidebar → ⚙ Settings → configure lock/blur/clipboard |
 
 ---
 
@@ -92,37 +140,85 @@ If you use AI services like ChatGPT, Claude, Gemini, or any cloud platform, you 
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+K` | Quick search (copy keys from search results) |
+| `Ctrl+K` | Quick search (copy keys from results with Enter) |
 | `Ctrl+L` | Lock the app immediately |
-| `Esc` | Close modals |
+| `Esc` | Close any modal or popup |
 
 ---
 
 ## How Search Works
 
-You can search for keys using any of these methods:
+All search bars support multiple input methods:
 
-| Input | Matches |
-|-------|---------|
+| You type | Finds |
+|----------|-------|
 | `openai` | OpenAI keys |
-| `오픈` | OpenAI (Korean name) |
-| `ㅇㅍ` | OpenAI (Korean consonants) |
-| `OPENAI_API_KEY` | By .env variable name |
+| `오픈` | OpenAI (Korean name match) |
+| `ㅇㅍ` | OpenAI (Korean consonant match) |
+| `OPENAI_API_KEY` | Match by .env variable name |
 | `deep` | DeepSeek |
+| `클로` | Claude (클로드) |
+| `billing` | Keys with "billing" in memo |
 
 ---
 
-## Tech Stack
+## Supported Providers (100+)
 
-| Component | Technology |
-|-----------|-----------|
-| Framework | Tauri v2 (Rust backend) |
-| Frontend | React + TypeScript |
-| Styling | Tailwind CSS |
-| Database | SQLite (local file) |
-| Encryption | AES-256-GCM |
-| Password Hashing | Argon2id |
-| Build | Vite |
+<details>
+<summary>Click to expand full list</summary>
+
+**AI Platforms**: OpenAI, Anthropic (Claude), Google AI (Gemini), Google Vertex AI, Groq, Mistral AI, Cohere, Perplexity, Together AI, Fireworks AI, DeepSeek, xAI (Grok), Replicate, HuggingFace, Stability AI, ElevenLabs, AssemblyAI, Pinecone, Weaviate, Voyage AI, AI21 Labs, Cerebras, SambaNova, Upstage, Naver Clova, Kakao (Karlo), OpenRouter, Ollama, LM Studio, Midjourney, RunwayML, Fal.ai, DALL-E, Whisper, Suno AI, Udio, Ideogram, Leonardo AI, Cursor, Copilot, Tavily, Exa, Serper, Recraft AI, Flux, Luma AI, Pika, Heygen, D-ID, Synthesia, Typecast, Kling AI, Minimax, Zhipu AI, Baidu, Alibaba (Qwen), Coze, Dify, LangSmith, Weights & Biases
+
+**Cloud/Infrastructure**: AWS, Google Cloud, Azure, Vercel, Supabase, Firebase, Cloudflare, Netlify, Railway, Render, DigitalOcean, Neon, PlanetScale, Upstash, MongoDB Atlas, Heroku, Fly.io
+
+**Developer Tools**: GitHub, GitLab, Notion, Sentry, Postman, npm, Docker Hub, Algolia, Airtable, Linear
+
+**Payments**: Stripe, PayPal, Toss Payments, Iamport (PortOne)
+
+**Communication**: Slack, Discord, Telegram, Twilio, SendGrid, Resend, Mailgun, KakaoTalk
+
+**+ Custom**: Add any provider not in this list
+
+</details>
+
+---
+
+## Security Architecture
+
+```
+Master Password
+    │
+    ├──→ Argon2id Hash → Stored in DB (verification only)
+    │
+    └──→ Argon2id KDF + Salt → 256-bit Encryption Key (memory only)
+                                    │
+                                    ├──→ AES-256-GCM Encrypt → Stored API keys
+                                    │
+                                    └──→ On Lock: zeroed from memory
+
+Recovery Key (32 bytes, shown once)
+    │
+    └──→ Encrypts master password → stored for emergency recovery
+```
+
+---
+
+## FAQ
+
+**Q: What if I forget my master password?**
+Use the recovery key you saved during setup. If you lost that too, your data cannot be recovered — this is by design for maximum security.
+
+**Q: Can I move my keys to another PC?**
+Use .env export to save keys to a file, then import on the new PC.
+
+**Q: Does it need internet?**
+No. The app is 100% offline. Keys never touch the network.
+
+**Q: The app won't open / keeps saying "wrong password"**
+After 5 failed attempts, the app locks for 60 seconds. Wait and try again.
+
+**Q: I changed my password and now recovery key doesn't work**
+After a password change, the old recovery key is invalidated. You'll need to set up a new one.
 
 ---
 
@@ -130,12 +226,11 @@ You can search for keys using any of these methods:
 
 ### Prerequisites
 - Node.js 18+
-- Rust (via rustup)
-- Tauri CLI (`npm install -g @tauri-apps/cli`)
+- Rust (via [rustup](https://rustup.rs))
+- Tauri CLI: `npm install -g @tauri-apps/cli`
 
 ### Development
 ```bash
-cd api-key-vault
 npm install
 npm run tauri dev
 ```
@@ -145,40 +240,22 @@ npm run tauri dev
 npm run tauri build
 ```
 
-Output:
-- `.exe` → `src-tauri/target/release/api-key-vault.exe`
-- `.msi` → `src-tauri/target/release/bundle/msi/`
-
 ### Tests
 ```bash
-cd src-tauri
-cargo test
+cd src-tauri && cargo test
 ```
 
----
+### Tech Stack
 
-## Security Architecture
-
-```
-User Input (password)
-    │
-    ▼
-Argon2id Hash ──→ Stored in SQLite (for verification)
-    │
-    ▼
-Argon2id KDF ──→ 256-bit Encryption Key (in memory only)
-    │
-    ▼
-AES-256-GCM ──→ Encrypted API keys (stored in SQLite)
-    │
-    ▼
-On Lock: Key zeroed from memory
-```
-
-- **Password** is never stored — only its Argon2id hash
-- **Encryption key** exists only in memory while unlocked
-- **API keys** are encrypted at rest in SQLite
-- **Recovery key** can decrypt a stored encrypted copy of the password
+| Component | Technology |
+|-----------|-----------|
+| Framework | Tauri v2 (Rust backend) |
+| Frontend | React 18 + TypeScript |
+| Styling | Tailwind CSS |
+| Database | SQLite (rusqlite, bundled) |
+| Encryption | AES-256-GCM (aes-gcm crate) |
+| Password Hashing | Argon2id (argon2 crate) |
+| Build | Vite 6 |
 
 ---
 

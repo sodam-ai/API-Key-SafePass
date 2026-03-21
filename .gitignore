@@ -5,6 +5,10 @@ node_modules/
 dist/
 src-tauri/target/
 
+# Release binaries (large files — download from GitHub Releases instead)
+*.exe
+*.msi
+
 # Environment & secrets
 .env
 .env.*
@@ -34,3 +38,6 @@ src-tauri/gen/
 # Logs
 *.log
 npm-debug.log*
+
+# Preview images (generated)
+app-icon-preview.png
