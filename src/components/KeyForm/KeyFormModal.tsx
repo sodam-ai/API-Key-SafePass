@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ApiKeyWithTags, Tag, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl } from "../../types";
 import * as api from "../../lib/tauri";
-import { PROVIDER_PRESETS, detectProvider, getProvidersByCategory } from "../../lib/providers";
+import { PROVIDER_PRESETS, detectProvider, getProvidersByCategory, matchProvider } from "../../lib/providers";
 
 interface KeyFormModalProps {
   projectId: string;
@@ -72,9 +72,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
     setProviderSearch("");
   };
 
-  const filteredPresets = PROVIDER_PRESETS.filter((p) =>
-    p.name.toLowerCase().includes(providerSearch.toLowerCase())
-  );
+  const filteredPresets = PROVIDER_PRESETS.filter((p) => matchProvider(p, providerSearch));
 
   const toggleTag = (tagId: string) => {
     setSelectedTagIds((prev) =>
@@ -174,7 +172,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
                     <div className="p-2 border-b border-zinc-700">
                       <input
                         type="text"
-                        placeholder="검색..."
+                        placeholder="검색... (한글, 영문, 초성 ㅇㅍ)"
                         value={providerSearch}
                         onChange={(e) => setProviderSearch(e.target.value)}
                         autoFocus
@@ -188,33 +186,66 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
                         const categories = ["ai", "cloud", "dev", "payment", "comm"];
                         const hasResults = filteredPresets.length > 0;
 
-                        if (!hasResults) {
-                          return <p className="px-3 py-3 text-xs text-zinc-500 text-center">일치하는 제공자 없음 — 상세 정보에서 직접 입력</p>;
-                        }
+                        return (
+                          <>
+                            {categories.map((cat) => {
+                              const items = (grouped.get(cat) || []).filter((p) => matchProvider(p, providerSearch));
+                              if (items.length === 0) return null;
+                              return (
+                                <div key={cat}>
+                                  <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-widest bg-zinc-900/50 sticky top-0">
+                                    {labels[cat]}
+                                  </div>
+                                  {items.map((preset) => (
+                                    <button
+                                      key={preset.name}
+                                      onClick={() => applyPreset(preset)}
+                                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-700 transition-colors flex items-center justify-between"
+                                    >
+                                      <div>
+                                        <span className="text-zinc-200 text-xs">{preset.name}</span>
+                                        <span className="text-[11px] text-zinc-600 ml-1.5">{preset.nameKo}</span>
+                                      </div>
+                                      <span className="text-[11px] text-zinc-600 font-mono">{preset.envVarName}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              );
+                            })}
 
-                        return categories.map((cat) => {
-                          const items = (grouped.get(cat) || []).filter((p) =>
-                            p.name.toLowerCase().includes(providerSearch.toLowerCase())
-                          );
-                          if (items.length === 0) return null;
-                          return (
-                            <div key={cat}>
-                              <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-widest bg-zinc-900/50 sticky top-0">
-                                {labels[cat]}
-                              </div>
-                              {items.map((preset) => (
-                                <button
-                                  key={preset.name}
-                                  onClick={() => applyPreset(preset)}
-                                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-700 transition-colors flex items-center justify-between"
-                                >
-                                  <span className="text-zinc-200 text-xs">{preset.name}</span>
-                                  <span className="text-[11px] text-zinc-600 font-mono">{preset.envVarName}</span>
-                                </button>
-                              ))}
+                            {/* 직접 추가 */}
+                            <div className="border-t border-zinc-700/50">
+                              <button
+                                onClick={() => {
+                                  const customName = providerSearch.trim() || "";
+                                  if (customName) {
+                                    setProvider(customName);
+                                    if (!name) setName(`${customName} API Key`);
+                                  }
+                                  setShowProviderPicker(false);
+                                  setProviderSearch("");
+                                  setShowDetails(true);
+                                }}
+                                className="w-full text-left px-3 py-2.5 text-sm hover:bg-zinc-700 transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4 text-vault-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span className="text-vault-400 text-xs font-medium">
+                                  {providerSearch.trim()
+                                    ? `"${providerSearch.trim()}" 직접 추가`
+                                    : "제공자 직접 입력하기"}
+                                </span>
+                              </button>
                             </div>
-                          );
-                        });
+
+                            {!hasResults && providerSearch.trim() && (
+                              <p className="px-3 py-2 text-[11px] text-zinc-600 text-center">
+                                목록에 없는 제공자는 위 "직접 추가"를 눌러주세요
+                              </p>
+                            )}
+                          </>
+                        );
                       })()}
                     </div>
                   </div>
