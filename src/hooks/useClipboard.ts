@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { writeText, readText, clear } from "@tauri-apps/plugin-clipboard-manager";
 
-const CLEAR_DELAY_MS = 30_000;
+const CLEAR_DELAY_MS = 10_000; // 10초 — 보안 강화
 
 export function useClipboard() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -19,7 +19,7 @@ export default function LockScreen({ isFirstTime, onUnlocked, onRecoveryKey }: L
   const [recoveryKeyDisplay, setRecoveryKeyDisplay] = useState<string | null>(null);
 
   const handleSetup = async () => {
-    if (password.length < 4) { setError("비밀번호는 최소 4자 이상이어야 합니다"); return; }
+    if (password.length < 6) { setError("비밀번호는 최소 6자 이상이어야 합니다"); return; }
     if (password !== confirmPassword) { setError("비밀번호가 일치하지 않습니다"); return; }
     setLoading(true); setError("");
     try {
@@ -39,11 +39,15 @@ export default function LockScreen({ isFirstTime, onUnlocked, onRecoveryKey }: L
       else {
         const c = failCount + 1;
         setFailCount(c);
-        if (c >= 5) {
+        if (c >= 10) {
           setLocked(true);
-          setError("5회 실패! 30초 후 다시 시도해주세요");
-          setTimeout(() => { setLocked(false); setFailCount(0); setError(""); }, 30_000);
-        } else { setError(`비밀번호가 틀렸습니다 (${c}/5)`); }
+          setError("10회 실패! 5분 후 다시 시도해주세요");
+          setTimeout(() => { setLocked(false); setFailCount(0); setError(""); }, 5 * 60_000);
+        } else if (c >= 5) {
+          setLocked(true);
+          setError(`${c}회 실패! 60초 후 다시 시도해주세요`);
+          setTimeout(() => { setLocked(false); setError(""); }, 60_000);
+        } else { setError(`비밀번호가 틀렸습니다 (${c}/10)`); }
       }
     } catch (e) { setError(String(e)); }
     finally { setLoading(false); }

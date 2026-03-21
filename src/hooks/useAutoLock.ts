@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 
-const AUTO_LOCK_MS = 5 * 60 * 1000; // 5 minutes
+const AUTO_LOCK_MS = 2 * 60 * 1000; // 2분 — 보안 강화
 
 export function useAutoLock(onLock: () => void, enabled: boolean) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

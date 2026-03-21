@@ -12,8 +12,12 @@
     user-select: none;
     -webkit-font-smoothing: antialiased;
   }
-  input, textarea {
+  input, textarea, code {
     user-select: text;
+  }
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
   }
 }
 

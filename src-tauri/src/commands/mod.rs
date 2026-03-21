@@ -35,8 +35,8 @@ pub fn setup_master_password(state: State<AppState>, password: String) -> Result
     if db::get_setting(&conn, "master_password_hash").map_err(err_to_string)?.is_some() {
         return Err("마스터 비밀번호가 이미 설정되어 있습니다".into());
     }
-    if password.len() < 4 {
-        return Err("비밀번호는 최소 4자 이상이어야 합니다".into());
+    if password.len() < 6 {
+        return Err("비밀번호는 최소 6자 이상이어야 합니다".into());
     }
 
     let hash = crypto::hash_password(&password).map_err(err_to_string)?;
@@ -124,8 +124,8 @@ pub fn unlock_with_recovery(state: State<AppState>, recovery_key: String) -> Res
 
 #[tauri::command]
 pub fn change_master_password(state: State<AppState>, current_password: String, new_password: String) -> Result<(), String> {
-    if new_password.len() < 4 {
-        return Err("새 비밀번호는 최소 4자 이상이어야 합니다".into());
+    if new_password.len() < 6 {
+        return Err("새 비밀번호는 최소 6자 이상이어야 합니다".into());
     }
 
     let conn = state.db.lock().map_err(err_to_string)?;
@@ -168,6 +168,10 @@ pub fn change_master_password(state: State<AppState>, current_password: String, 
 #[tauri::command]
 pub fn lock(state: State<AppState>) -> Result<(), String> {
     let mut key_guard = state.encryption_key.lock().map_err(err_to_string)?;
+    // Zero out the encryption key from memory before dropping
+    if let Some(ref mut key) = *key_guard {
+        key.iter_mut().for_each(|b| *b = 0);
+    }
     *key_guard = None;
     Ok(())
 }
@@ -257,8 +261,11 @@ pub fn search_api_keys(state: State<AppState>, query: String) -> Result<Vec<ApiK
 
 #[tauri::command]
 pub fn quick_update_key_value(state: State<AppState>, key_id: String, new_value: String) -> Result<(), String> {
-    if new_value.is_empty() {
+    if new_value.trim().is_empty() {
         return Err("키값을 입력해주세요".into());
+    }
+    if key_id.trim().is_empty() || !key_id.starts_with("key-") {
+        return Err("유효하지 않은 키 ID입니다".into());
     }
     let enc_key = get_enc_key(&state)?;
     let encrypted = crypto::encrypt_value(&new_value, &enc_key).map_err(err_to_string)?;
