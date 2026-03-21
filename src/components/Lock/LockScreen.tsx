@@ -142,7 +142,7 @@ export default function LockScreen({ isFirstTime, onUnlocked, onRecoveryKey }: L
           </div>
         </div>
 
-        <h1 className="text-[22px] font-semibold text-center mb-1 tracking-tight">API Key Vault</h1>
+        <h1 className="text-[22px] font-semibold text-center mb-1 tracking-tight">API Key SafePass</h1>
         <p className="text-sm text-zinc-500 text-center mb-8">
           {isFirstTime ? "마스터 비밀번호를 설정해주세요" : "비밀번호를 입력하여 잠금을 해제하세요"}
         </p>

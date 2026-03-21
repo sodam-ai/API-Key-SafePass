@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicotineo/tauri/dev/crates/tauri-config-schema/schema.json",
-  "productName": "API Key Vault",
+  "productName": "API Key SafePass",
   "version": "0.1.0",
   "identifier": "com.apikeyvault.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "API Key Vault",
+        "title": "API Key SafePass",
         "width": 1100,
         "height": 700,
         "resizable": true,

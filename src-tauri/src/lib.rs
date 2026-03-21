@@ -64,5 +64,5 @@ pub fn run() {
             commands::get_stats,
         ])
         .run(tauri::generate_context!())
-        .expect("API Key Vault 실행 중 오류 발생");
+        .expect("API Key SafePass 실행 중 오류 발생");
 }
