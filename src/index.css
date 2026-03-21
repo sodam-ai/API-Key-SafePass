@@ -108,3 +108,15 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
+/* Security: blur overlay when window loses focus */
+.blur-lg {
+  filter: blur(20px) !important;
+  transition: filter 0.15s ease;
+}
+
+/* Prevent text selection on sensitive elements */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
