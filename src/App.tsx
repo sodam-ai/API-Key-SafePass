@@ -8,6 +8,7 @@ import KeyList from "./components/KeyList/KeyList";
 import Dashboard from "./components/Dashboard/Dashboard";
 import SearchModal from "./components/Search/SearchModal";
 import KeyFormModal from "./components/KeyForm/KeyFormModal";
+import ChangePasswordModal from "./components/Settings/ChangePasswordModal";
 import { useAutoLock } from "./hooks/useAutoLock";
 
 type AppScreen = "loading" | "lock" | "main";
@@ -21,6 +22,7 @@ export default function App() {
   const [keys, setKeys] = useState<ApiKeyWithTags[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [showGlobalAdd, setShowGlobalAdd] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -171,6 +173,7 @@ export default function App() {
         onSelect={setSelection}
         onProjectsChanged={() => { loadProjects(); loadAllKeys(); }}
         onLock={handleLock}
+        onChangePassword={() => setShowChangePassword(true)}
       />
 
       {selection.type === "dashboard" ? (
@@ -210,6 +213,14 @@ export default function App() {
           projectId={activeProjectId}
           onClose={() => setShowGlobalAdd(false)}
           onSaved={() => { setShowGlobalAdd(false); handleRefresh(); }}
+        />
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <ChangePasswordModal
+          onClose={() => setShowChangePassword(false)}
+          onChanged={() => setShowChangePassword(false)}
         />
       )}
 
