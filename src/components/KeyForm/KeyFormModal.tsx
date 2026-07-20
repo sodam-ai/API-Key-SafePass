@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
-import type { ApiKeyWithTags, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl } from "../../types";
+import type { ApiKeyWithTags, CreateApiKeyInput, UpdateApiKeyInput, ReferenceUrl, Tag, AccountEntry } from "../../types";
 import * as api from "../../lib/tauri";
 import { PROVIDER_PRESETS, detectProvider, getProvidersByCategory, matchProvider } from "../../lib/providers";
+import AccountEntryList from "./AccountEntryList";
+
+const TAG_COLORS = ["#4c6ef5", "#7950f2", "#e64980", "#f76707", "#12b886", "#15aabf", "#fab005", "#868e96"];
 
 interface KeyFormModalProps {
   projectId: string;
@@ -27,6 +30,50 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
   const [providerSearch, setProviderSearch] = useState("");
   const [showProviderPicker, setShowProviderPicker] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [newTagName, setNewTagName] = useState("");
+  const [creatingTag, setCreatingTag] = useState(false);
+  const [accounts, setAccounts] = useState<AccountEntry[]>([]);
+  // True when an existing key's accounts blob failed to load (decrypt/parse/IPC error).
+  // Guards handleSave from overwriting real saved accounts with an empty array just
+  // because the fetch that was supposed to populate them didn't succeed.
+  const [accountsLoadFailed, setAccountsLoadFailed] = useState(false);
+
+  useEffect(() => {
+    api.listTags().then(setAvailableTags).catch(() => { /* tag list is optional; form still works without it */ });
+  }, []);
+
+  useEffect(() => {
+    setAccountsLoadFailed(false);
+    if (editKey?.has_accounts) {
+      api.getKeyAccounts(editKey.id).then(setAccounts).catch(() => {
+        setAccounts([]);
+        setAccountsLoadFailed(true);
+      });
+    } else {
+      setAccounts([]);
+    }
+  }, [editKey]);
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTagIds((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
+  };
+
+  const handleCreateTag = async () => {
+    const trimmed = newTagName.trim();
+    if (!trimmed) return;
+    setCreatingTag(true);
+    try {
+      const tag = await api.createTag({ name: trimmed, color: TAG_COLORS[availableTags.length % TAG_COLORS.length] });
+      setAvailableTags((prev) => [...prev, tag]);
+      setSelectedTagIds((prev) => [...prev, tag.id]);
+      setNewTagName("");
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setCreatingTag(false);
+    }
+  };
 
   useEffect(() => {
     if (editKey) {
@@ -77,6 +124,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
     setError("");
     try {
       const refUrlsJson = referenceUrls.length > 0 ? JSON.stringify(referenceUrls) : undefined;
+      let savedKeyId: string;
       if (editKey) {
         const input: UpdateApiKeyInput = {
           id: editKey.id,
@@ -91,6 +139,7 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
           tag_ids: selectedTagIds,
         };
         await api.updateApiKey(input);
+        savedKeyId = editKey.id;
       } else {
         const input: CreateApiKeyInput = {
           project_id: projectId,
@@ -104,7 +153,17 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
           reference_urls: refUrlsJson,
           tag_ids: selectedTagIds,
         };
-        await api.createApiKey(input);
+        const created = await api.createApiKey(input);
+        savedKeyId = created.id;
+      }
+      // Only touch the accounts blob when there's something to save or clear —
+      // avoids a needless encrypt/write for the common case of a key with no accounts.
+      // If loading the existing accounts failed, we don't know their real contents,
+      // so skip writing rather than risk overwriting saved data with an empty array.
+      if (accountsLoadFailed && editKey?.has_accounts) {
+        // no-op: preserve whatever is already stored
+      } else if (accounts.length > 0 || editKey?.has_accounts) {
+        await api.setKeyAccounts(savedKeyId, accounts);
       }
       onSaved();
     } catch (e) {
@@ -371,6 +430,52 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
             <p className="text-[11px] text-zinc-600 mt-1">문서, 요금 페이지, 대시보드 등 참고할 URL</p>
           </div>
 
+          {/* Tags */}
+          <div>
+            <label className="block text-xs text-zinc-400 mb-1.5">태그</label>
+            {availableTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {availableTags.map((tag) => {
+                  const active = selectedTagIds.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.id)}
+                      className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                        active ? "text-white border-transparent" : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                      }`}
+                      style={active ? { backgroundColor: tag.color || "#4c6ef5" } : undefined}
+                    >
+                      #{tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="새 태그 이름 (예: 무료, 테스트)"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); handleCreateTag(); }
+                }}
+                className="flex-1 px-2.5 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-xs
+                           focus:outline-none focus:border-vault-500 placeholder-zinc-600"
+              />
+              <button
+                type="button"
+                onClick={handleCreateTag}
+                disabled={!newTagName.trim() || creatingTag}
+                className="px-2.5 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs disabled:opacity-40 transition-colors flex-shrink-0"
+              >
+                추가
+              </button>
+            </div>
+          </div>
+
           {/* Additional fields — always visible */}
           <div className="space-y-3 pt-1 border-t border-zinc-800/50">
               <div>
@@ -397,6 +502,13 @@ export default function KeyFormModal({ projectId, editKey, onClose, onSaved }: K
               </div>
 
           </div>
+
+          {accountsLoadFailed && (
+            <p className="text-xs text-yellow-400 -mb-1">
+              저장된 계정 정보를 불러오지 못했습니다. 이 화면에서 수정해도 기존 계정은 그대로 유지됩니다.
+            </p>
+          )}
+          <AccountEntryList accounts={accounts} onChange={setAccounts} defaultExpanded={!!editKey?.has_accounts} />
         </div>
 
         {error && <p className="text-red-400 text-sm mt-3">{error}</p>}

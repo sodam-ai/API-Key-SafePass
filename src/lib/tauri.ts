@@ -3,7 +3,7 @@ import type {
   Project, ApiKey, ApiKeyWithTags, Tag,
   CreateProjectInput, UpdateProjectInput,
   CreateApiKeyInput, UpdateApiKeyInput,
-  CreateTagInput, Stats, UsageLogWithKeyName,
+  CreateTagInput, Stats, UsageLogWithKeyName, AccountEntry,
 } from "../types";
 
 // --- Auth ---
@@ -12,7 +12,9 @@ export const setupMasterPassword = (password: string) => invoke<string>("setup_m
 export const unlock = (password: string) => invoke<boolean>("unlock", { password });
 export const unlockWithRecovery = (recoveryKey: string) => invoke<boolean>("unlock_with_recovery", { recoveryKey });
 export const changeMasterPassword = (currentPassword: string, newPassword: string) =>
-  invoke<void>("change_master_password", { currentPassword, newPassword });
+  invoke<string | null>("change_master_password", { currentPassword, newPassword });
+export const regenerateRecoveryKey = (currentPassword: string) =>
+  invoke<string>("regenerate_recovery_key", { currentPassword });
 export const lock = () => invoke<void>("lock");
 
 // --- Projects ---
@@ -30,6 +32,11 @@ export const updateApiKey = (input: UpdateApiKeyInput) => invoke<void>("update_a
 export const deleteApiKey = (id: string) => invoke<void>("delete_api_key", { id });
 export const searchApiKeys = (query: string) => invoke<ApiKeyWithTags[]>("search_api_keys", { query });
 
+// --- Accounts (username/password/site/extra key sets attached to a key) ---
+export const getKeyAccounts = (keyId: string) => invoke<AccountEntry[]>("get_key_accounts", { keyId });
+export const setKeyAccounts = (keyId: string, accounts: AccountEntry[]) =>
+  invoke<void>("set_key_accounts", { keyId, accounts });
+
 // --- Quick Update ---
 export const quickUpdateKeyValue = (keyId: string, newValue: string) =>
   invoke<void>("quick_update_key_value", { keyId, newValue });
@@ -37,6 +44,15 @@ export const quickUpdateKeyValue = (keyId: string, newValue: string) =>
 // --- .env ---
 export const exportEnv = (projectId: string) => invoke<string>("export_env", { projectId });
 export const importEnv = (projectId: string, content: string) => invoke<number>("import_env", { projectId, content });
+export const writeTextFile = (path: string, content: string) => invoke<void>("write_text_file", { path, content });
+export const readTextFile = (path: string) => invoke<string>("read_text_file", { path });
+
+// --- Backup / Restore ---
+export const backupVault = (destPath: string) => invoke<void>("backup_vault", { destPath });
+export const stageRestore = (currentPassword: string, backupPath: string) =>
+  invoke<void>("stage_restore", { currentPassword, backupPath });
+export const hasPendingRestore = () => invoke<boolean>("has_pending_restore");
+export const cancelPendingRestore = () => invoke<void>("cancel_pending_restore");
 
 // --- Tags ---
 export const createTag = (input: CreateTagInput) => invoke<Tag>("create_tag", { input });

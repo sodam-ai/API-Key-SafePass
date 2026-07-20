@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { save } from "@tauri-apps/plugin-dialog";
 import * as api from "../../lib/tauri";
 import type { AppPreferences } from "../../types";
 
@@ -7,6 +8,8 @@ interface SettingsModalProps {
   onClose: () => void;
   onSaved: (prefs: AppPreferences) => void;
   onChangePassword: () => void;
+  onRegenerateRecovery: () => void;
+  onRestoreVault: () => void;
 }
 
 const AUTO_LOCK_OPTIONS = [
@@ -33,12 +36,45 @@ const BLUR_DELAY_OPTIONS = [
   { value: 10, label: "10초 후" },
 ];
 
-export default function SettingsModal({ prefs, onClose, onSaved, onChangePassword }: SettingsModalProps) {
+export default function SettingsModal({ prefs, onClose, onSaved, onChangePassword, onRegenerateRecovery, onRestoreVault }: SettingsModalProps) {
   const [autoLockMin, setAutoLockMin] = useState(prefs.autoLockMin);
   const [clipboardClearSec, setClipboardClearSec] = useState(prefs.clipboardClearSec);
   const [blurEnabled, setBlurEnabled] = useState(prefs.blurEnabled);
   const [blurDelaySec, setBlurDelaySec] = useState(prefs.blurDelaySec);
   const [saving, setSaving] = useState(false);
+  const [backingUp, setBackingUp] = useState(false);
+  const [pendingRestore, setPendingRestore] = useState(false);
+
+  useEffect(() => {
+    api.hasPendingRestore().then(setPendingRestore).catch(() => {});
+  }, []);
+
+  const handleBackup = async () => {
+    setBackingUp(true);
+    try {
+      const path = await save({
+        defaultPath: `api-key-safepass-backup-${new Date().toISOString().slice(0, 10)}.db`,
+        filters: [{ name: "Vault Backup", extensions: ["db"] }],
+      });
+      if (path) {
+        await api.backupVault(path);
+        alert("백업 파일이 저장되었습니다. (이미 암호화된 상태로 저장되므로 그대로 안전하게 보관하세요)");
+      }
+    } catch (e) {
+      alert(String(e));
+    } finally {
+      setBackingUp(false);
+    }
+  };
+
+  const handleCancelPendingRestore = async () => {
+    try {
+      await api.cancelPendingRestore();
+      setPendingRestore(false);
+    } catch (e) {
+      alert(String(e));
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -178,6 +214,59 @@ export default function SettingsModal({ prefs, onClose, onSaved, onChangePasswor
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
+
+          {/* Regenerate recovery key */}
+          <button
+            onClick={() => { onClose(); setTimeout(onRegenerateRecovery, 100); }}
+            className="w-full text-left px-3 py-2.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2.5">
+              <svg className="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM3.75 12h2.25m13.5 0h2.25M12 3.75v2.25m0 13.5v2.25M5.636 5.636l1.591 1.591m9.546 9.546l1.591 1.591M5.636 18.364l1.591-1.591m9.546-9.546l1.591-1.591" />
+              </svg>
+              <span className="text-sm text-zinc-300">복구키 재발급</span>
+            </div>
+            <svg className="w-4 h-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+
+          {/* Divider */}
+          <div className="h-px bg-zinc-800" />
+
+          {/* Backup / Restore */}
+          <div>
+            <h3 className="text-sm font-medium text-zinc-200 mb-1">백업 · 복원</h3>
+            <p className="text-[11px] text-zinc-500 mb-2">전체 볼트를 암호화된 상태 그대로 파일로 저장하거나 되돌립니다.</p>
+
+            {pendingRestore && (
+              <div className="mb-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-amber-400">복원 대기 중 — 다음 재시작 시 적용됩니다</span>
+                <button
+                  onClick={handleCancelPendingRestore}
+                  className="text-[11px] text-amber-300 hover:text-amber-200 underline flex-shrink-0"
+                >
+                  취소
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleBackup}
+                disabled={backingUp}
+                className="flex-1 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 text-xs text-zinc-300 transition-colors disabled:opacity-40"
+              >
+                {backingUp ? "백업 중..." : "지금 백업"}
+              </button>
+              <button
+                onClick={() => { onClose(); setTimeout(onRestoreVault, 100); }}
+                className="flex-1 px-3 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 text-xs text-zinc-300 transition-colors"
+              >
+                백업에서 복원
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-3 mt-6">

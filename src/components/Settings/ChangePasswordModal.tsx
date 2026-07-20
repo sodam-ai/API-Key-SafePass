@@ -13,6 +13,7 @@ export default function ChangePasswordModal({ onClose, onChanged }: ChangePasswo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [newRecoveryKey, setNewRecoveryKey] = useState<string | null>(null);
 
   // Password strength check
   const getStrength = (pw: string): { level: number; label: string; color: string } => {
@@ -54,11 +55,9 @@ export default function ChangePasswordModal({ onClose, onChanged }: ChangePasswo
     setLoading(true);
     setError("");
     try {
-      await api.changeMasterPassword(currentPassword, newPassword);
+      const recoveryKey = await api.changeMasterPassword(currentPassword, newPassword);
+      setNewRecoveryKey(recoveryKey);
       setSuccess(true);
-      setTimeout(() => {
-        onChanged();
-      }, 1500);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -80,7 +79,28 @@ export default function ChangePasswordModal({ onClose, onChanged }: ChangePasswo
             </svg>
           </div>
           <h2 className="text-lg font-semibold mb-1">비밀번호 변경 완료</h2>
-          <p className="text-sm text-zinc-400">모든 키가 새 비밀번호로 재암호화되었습니다</p>
+          <p className="text-sm text-zinc-400 mb-4">모든 키가 새 비밀번호로 재암호화되었습니다</p>
+
+          {newRecoveryKey && (
+            <div className="text-left">
+              <p className="text-xs text-amber-400 font-medium mb-2">
+                기존 복구키는 더 이상 사용할 수 없습니다. 아래 새 복구키를 안전하게 보관하세요.
+              </p>
+              <div className="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-4 mb-4 shadow-inner">
+                <code className="text-xs text-green-400 break-all select-text leading-relaxed">{newRecoveryKey}</code>
+              </div>
+              <p className="text-[11px] text-zinc-500 mb-4">
+                메모장, 비밀번호 관리자, 또는 종이에 적어서 보관하세요. 이 화면을 닫으면 다시 볼 수 없습니다.
+              </p>
+            </div>
+          )}
+
+          <button
+            onClick={onChanged}
+            className="w-full py-2.5 bg-vault-600 hover:bg-vault-500 rounded-lg text-sm font-medium transition-colors"
+          >
+            확인, 보관했습니다
+          </button>
         </div>
       </div>
     );
