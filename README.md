@@ -1,264 +1,527 @@
 # API Key SafePass
 
-> Your API keys, encrypted and organized — all on your PC.
+> 내 컴퓨터 안에서만 안전하게 보관하는 API 키 금고 — 서버도, 클라우드도, 인터넷 전송도 없습니다.
 
-A secure desktop app that stores API keys with AES-256-GCM encryption, locked behind a master password. No server, no cloud — everything stays on your computer.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](#다운로드-방법)
 
-[한국어](./README.ko.md) | [日本語](./README.ja.md) | [中文](./README.zh.md)
-
----
-
-## What is this?
-
-If you use AI services like ChatGPT, Claude, Gemini, or any cloud platform, you have API keys scattered across notepad files, .env files, browser tabs, and chat messages. **API Key SafePass** keeps them all in one encrypted vault on your PC.
-
-**No coding knowledge required.** This app was built for anyone — including people who have never written a line of code.
+**언어**: 한국어(현재 문서) · [English](./README.en.md)
+**왕초보 가이드가 필요하신가요?** → [GUIDE.md](./GUIDE.md) (컴퓨터가 낯선 분들을 위한 클릭 단위 안내서)
 
 ---
 
-## Download & Install
+## 이 앱은 무엇인가요?
 
-### Windows
+ChatGPT, Claude, Gemini 같은 AI 서비스나 여러 클라우드 서비스를 쓰다 보면 "API 키"라는 긴 비밀번호 같은 문자열을 여러 개 발급받게 됩니다. 이런 키들을 메모장 파일, 카카오톡 자기 자신에게 보낸 메시지, 브라우저 탭에 흩어놓고 쓰는 경우가 많습니다.
 
-1. Go to [Releases](../../releases) page
-2. Download `API.Key.SafePass_x64-setup.exe` (recommended) or `.msi`
-3. Run the installer
-4. Open **API Key SafePass** from Start Menu
-
-> App size: ~2.5 MB. No internet connection required.
+**API Key SafePass**는 이런 API 키들을 **내 컴퓨터 안에 있는 암호화된 금고 하나**에 모아 보관하는 데스크톱 앱입니다. 마스터 비밀번호(금고의 대표 열쇠) 하나만 기억하면 되고, 실제 키 값은 AES-256-GCM이라는 암호화 방식으로 파일 안에 잠겨 저장됩니다. **코딩 지식이 전혀 없어도 사용할 수 있도록 만들어졌습니다.**
 
 ---
 
-## Features
+## 목차
 
-### Core
-- **AES-256-GCM Encryption** — Military-grade encryption for your API keys
-- **Master Password** — One password to unlock everything (Argon2id hashing)
-- **Recovery Key** — Backup key in case you forget your password
-- **Projects** — Organize keys by project (e.g., "My Blog", "Shopping App")
-
-### Convenience
-- **100+ Provider Presets** — OpenAI, Anthropic, Google, AWS, Stripe, and 100 more
-- **Auto-Detection** — Paste a key and the provider is detected automatically
-- **Korean/English/Chosung Search** — Search by "오픈" or "ㅇㅍ" to find OpenAI
-- **Inline Search** — Always-visible search bar at the top, with result count
-- **Quick Key Update** — Change a key value without opening the full edit form
-- **Reissue Flow** — Expired keys show a "Reissue" button that opens the service page
-- **Reference URLs** — Save documentation, pricing, dashboard links with each key
-- **.env Export** — Generate .env files from your project keys in one click
-- **.env Import** — Import existing .env files into SafePass
-- **Custom Providers** — Add any provider not in the preset list
-- **No Required Fields** — Save with just a key value, or even without one (add later)
-
-### Security
-- **Local Only** — No server, no cloud, no network (keys never leave your PC)
-- **Auto-Lock** — Configurable timeout (1/2/5/10/30 min or off)
-- **Clipboard Auto-Clear** — Configurable timeout (5/10/15/30/60 sec)
-- **Screen Blur Protection** — Blurs the app when you switch windows (configurable delay, can be disabled)
-- **Screenshot Protection** — OS-level screen capture prevention
-- **Brute Force Protection** — Backend-enforced lockout persisted in DB (survives app restart)
-  - Password: 5 fails → 60 sec lockout
-  - Recovery key: 3 fails → 5 min lockout
-- **Memory Zeroing** — Encryption key wiped from memory on lock
-- **URL Validation** — Only http/https URLs allowed (blocks javascript: injection)
-- **Transaction Safety** — Password changes are atomic (no data corruption on crash)
-- **CSP Headers** — Content Security Policy blocks XSS attacks
-- **DevTools Blocked** — F12, Ctrl+Shift+I, Ctrl+U all disabled
-- **Print/Save Blocked** — Ctrl+P, Ctrl+S disabled to prevent data leaks
-- **Settings Allowlist** — Only 4 whitelisted preference keys accepted by backend
-- **Error Sanitization** — Internal errors never exposed to frontend
-
-### Settings (User-configurable)
-- Auto-lock timeout
-- Clipboard clear time
-- Screen blur on/off + delay (instant / 3s / 5s / 10s)
-- Master password change (with strength indicator)
+1. [사전 준비물](#사전-준비물)
+2. [필요 프로그램](#필요-프로그램)
+3. [다운로드 방법](#다운로드-방법)
+4. [설치 방법](#설치-방법)
+5. [빠른 시작 방법](#빠른-시작-방법)
+6. [실행 방법](#실행-방법)
+7. [사용 방법 / 작동 방법](#사용-방법--작동-방법)
+8. [명령어](#명령어)
+9. [업데이트 내용 요약](#업데이트-내용-요약)
+10. [파일 / 문서 위치](#파일--문서-위치)
+11. [워크플로우](#워크플로우)
+12. [아키텍처](#아키텍처)
+13. [보안 / 데이터 흐름](#보안--데이터-흐름)
+14. [문제 / 오류 대처 방법](#문제--오류-대처-방법)
+15. [FAQ (자주 묻는 질문)](#faq-자주-묻는-질문)
+16. [법률 / 저작권 / 라이선스 / 상업적 용도](#법률--저작권--라이선스--상업적-용도)
 
 ---
 
-## Quick Start Guide
+## 사전 준비물
 
-> This guide is for **complete beginners** — no coding experience needed.
+일반 사용자(설치 파일로 쓰는 경우)에게 필요한 것은 이것뿐입니다.
 
-### Step 1: Install
+| 항목 | 요구 사항 |
+|---|---|
+| 운영체제 | **Windows 10 또는 Windows 11 (64비트)** — 현재 Windows용 설치 파일만 배포 중입니다. macOS/Linux는 아직 정식 배포되지 않습니다. |
+| 디스크 여유 공간 | 약 50MB 이상 (설치 파일 자체는 1.8~4.6MB, 실행 후 데이터 포함 여유 공간) |
+| 관리자 권한 | 설치 파일(`setup.exe`, `.msi`)을 쓸 경우 필요할 수 있음. 포터블 `.exe`는 관리자 권한 없이 실행 가능 |
+| 인터넷 연결 | **설치 파일을 내려받을 때만 필요**합니다. 설치 후 앱을 실제로 사용할 때는 인터넷이 전혀 필요 없습니다(로컬 전용 앱). |
 
-1. Download the installer from the [Releases](../../releases) page
-2. Double-click `API.Key.SafePass_x64-setup.exe`
-3. Follow the installation wizard (just click "Next")
-4. The app appears in your Start Menu
-
-### Step 2: Create Your Master Password
-
-1. Open **API Key SafePass**
-2. You'll see the lock screen — this is your first time, so create a password
-3. Type a password (at least 6 characters) and confirm it
-4. **IMPORTANT**: A **recovery key** will appear on screen
-   - Copy this key to a safe place (password manager, printed paper, etc.)
-   - **You will never see this key again!**
-   - If you forget your master password, this is the ONLY way to recover
-5. Click "Confirm, I saved it"
-
-### Step 3: Add Your First API Key
-
-**Method 1: Select a provider first**
-1. Click the big **+** button (bottom right)
-2. Click the "Provider" dropdown
-3. Search for your service (e.g., type "OpenAI" or "오픈")
-4. Click to select — name, URL, and .env variable are filled automatically
-5. Paste your API key
-6. Click **Save**
-
-**Method 2: Paste first (auto-detect)**
-1. Click the big **+** button
-2. Paste your API key into the "Key value" field
-3. If the key starts with a known prefix (like `sk-` for OpenAI), the provider is detected automatically
-4. Click **Save**
-
-**Method 3: Save now, add key later**
-1. Click the big **+** button
-2. Select a provider
-3. Click **Save** (even without a key value)
-4. Add the key later using the quick update button (🔄)
-
-### Step 4: Daily Usage
-
-| What you want to do | How |
-|---------------------|-----|
-| **Copy a key** | Click "Copy" on the key card (auto-clears from clipboard) |
-| **Search for a key** | Type in the search bar at the top |
-| **Quick search + copy** | Press `Ctrl+K`, type, press `Enter` to copy |
-| **Lock the app** | Press `Ctrl+L` or click "Lock" in sidebar |
-| **Update a key value** | Hover over the card → click 🔄 → paste new key |
-| **Reissue an expired key** | Click the red "Reissue" button → opens service page |
-| **Export .env file** | Select a project → click ".env" button in header |
-| **Change password** | Sidebar → ⚙ Settings → "Change master password" |
-| **Adjust security** | Sidebar → ⚙ Settings → configure lock/blur/clipboard |
+> 소스 코드를 직접 빌드해서 사용하려는 개발자는 아래 [필요 프로그램](#필요-프로그램) 항목이 추가로 필요합니다.
 
 ---
 
-## Keyboard Shortcuts
+## 필요 프로그램
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+K` | Quick search (copy keys from results with Enter) |
-| `Ctrl+L` | Lock the app immediately |
-| `Esc` | Close any modal or popup |
+### 일반 사용자 (설치 파일 사용)
 
----
+**추가로 설치할 프로그램이 없습니다.** Windows 10/11이면 바로 설치·실행할 수 있습니다.
 
-## How Search Works
+### 개발자 (소스 코드를 직접 빌드하려는 경우)
 
-All search bars support multiple input methods:
+이 프로젝트는 이번 세션에 새로 구현된 기능(계정 정보 복사 버튼, `.env` 가져오기 개선, 복구키 재발급 화면, 백업·복원 기능)을 아직 정식 릴리스로 배포하지 않았습니다. 최신 기능을 지금 바로 쓰고 싶다면 소스 코드를 직접 빌드해야 합니다. 이 경우 아래 프로그램이 필요합니다.
 
-| You type | Finds |
-|----------|-------|
-| `openai` | OpenAI keys |
-| `오픈` | OpenAI (Korean name match) |
-| `ㅇㅍ` | OpenAI (Korean consonant match) |
-| `OPENAI_API_KEY` | Match by .env variable name |
-| `deep` | DeepSeek |
-| `클로` | Claude (클로드) |
-| `billing` | Keys with "billing" in memo |
+| 프로그램 | 최소 버전 | 용도 | 다운로드 |
+|---|---|---|---|
+| [Node.js](https://nodejs.org/) | 18 이상 (LTS 권장) | 프론트엔드(화면) 빌드 | nodejs.org |
+| [Rust](https://www.rust-lang.org/tools/install) (`rustup`) | 최신 stable | 백엔드(암호화·DB 로직) 빌드 | rust-lang.org |
+| [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) | — | Windows에서 Rust 컴파일에 필요 | Visual Studio 설치 관리자 → "C++를 사용한 데스크톱 개발" 워크로드 |
+| [Git](https://git-scm.com/) | 아무 버전 | 소스 코드 내려받기 | git-scm.com |
+
+> WebView2는 Windows 11에 기본 내장되어 있고, Windows 10에서도 대부분 최신 업데이트에 포함되어 있습니다. 별도 설치가 필요하면 앱 실행 시 자동으로 안내됩니다.
 
 ---
 
-## Supported Providers (100+)
+## 다운로드 방법
+
+### 일반 사용자 — 설치 파일 내려받기
+
+1. 웹 브라우저로 다음 주소에 접속합니다: **https://github.com/sodam-ai/API-Key-SafePass/releases**
+2. 가장 위에 있는 `v0.1.0` (Latest 표시)을 클릭합니다.
+3. "Assets" 부분을 펼치면 아래 3개 파일 중 하나를 선택해 내려받습니다.
+
+| 파일명 | 용도 | 이럴 때 선택하세요 |
+|---|---|---|
+| `API.Key.SafePass_0.1.0_x64-setup.exe` | 설치형 (NSIS) — **권장** | 대부분의 사용자에게 추천. 시작 메뉴에 등록되고 삭제도 깔끔합니다. |
+| `API.Key.SafePass_0.1.0_x64_en-US.msi` | 설치형 (MSI) | 회사/기관 컴퓨터에서 MSI 형식만 허용하는 경우 |
+| `api-key-vault.exe` | 포터블 (설치 불필요) | 관리자 권한이 없거나, USB 등에 넣어 이동하며 쓰고 싶은 경우 |
+
+> **현재 배포된 v0.1.0에는 이번 세션에 새로 만든 계정 정보 복사 버튼, 백업·복원, 복구키 재발급 화면이 포함되어 있지 않습니다.** 이 기능들을 지금 쓰려면 [소스 코드로 직접 빌드](#실행-방법)해야 합니다. v0.1.0에 포함된 정확한 기능 목록은 [업데이트 내용 요약](#업데이트-내용-요약)을 확인하세요.
+
+### 개발자 — 소스 코드 내려받기
+
+```bash
+git clone https://github.com/sodam-ai/API-Key-SafePass.git
+cd API-Key-SafePass
+```
+
+---
+
+## 설치 방법
+
+### `setup.exe` (NSIS 설치 파일, 권장)
+
+1. 내려받은 `API.Key.SafePass_0.1.0_x64-setup.exe` 파일을 더블클릭합니다.
+2. **"Windows의 PC 보호" 화면(SmartScreen 경고)이 뜰 수 있습니다.** 이 앱은 아직 코드 서명 인증서(유료, 연 수십만 원)를 구매하지 않은 초기 버전이라 Windows가 "알 수 없는 게시자"로 표시합니다. 악성코드가 아니며, 오픈소스로 공개된 코드(Apache License 2.0)를 누구나 직접 확인할 수 있습니다.
+   - "추가 정보"를 클릭 → "실행" 버튼을 클릭하면 설치가 진행됩니다.
+3. 설치 경로를 선택하는 화면이 나오면 기본값 그대로 두고 "다음"을 눌러도 됩니다.
+4. 설치가 끝나면 "API Key SafePass"가 시작 메뉴에 등록됩니다.
+
+### `.msi` (MSI 설치 파일)
+
+1. 내려받은 `API.Key.SafePass_0.1.0_x64_en-US.msi` 파일을 더블클릭합니다.
+2. 설치 마법사의 안내를 따라 "Next" → "Install" → "Finish" 순서로 진행합니다.
+3. SmartScreen 경고가 뜨면 위 `setup.exe` 항목과 동일하게 처리합니다.
+
+### `api-key-vault.exe` (포터블, 설치 없이 실행)
+
+1. 내려받은 `api-key-vault.exe` 파일을 원하는 폴더(바탕화면, USB 등)에 둡니다.
+2. 더블클릭하면 설치 과정 없이 바로 실행됩니다.
+3. 이 방식은 시작 메뉴에 등록되지 않으므로, 다음에 실행할 때도 같은 파일을 다시 더블클릭해야 합니다.
+
+### 삭제(제거) 방법
+
+- `setup.exe`/`.msi`로 설치한 경우: Windows 설정 → 앱 → "API Key SafePass" 검색 → 제거
+- 포터블 `.exe`: 그냥 파일을 휴지통으로 옮기면 됩니다.
+- **주의**: 앱을 삭제해도 저장했던 키 데이터(`vault.db`)는 자동으로 지워지지 않습니다. 완전히 지우려면 [파일 / 문서 위치](#파일--문서-위치)에 안내된 데이터 폴더를 직접 삭제해야 합니다.
+
+---
+
+## 빠른 시작 방법
+
+설치가 끝났다면 5단계면 충분합니다.
+
+1. **앱 실행** — 시작 메뉴(또는 바탕화면)에서 "API Key SafePass"를 클릭합니다.
+2. **마스터 비밀번호 설정** — 처음 실행하면 마스터 비밀번호를 만들라는 화면이 나옵니다. 잊어버리지 않을 비밀번호를 입력합니다.
+3. **복구키 저장** — 비밀번호 설정 직후 "복구키"라는 긴 문자열이 한 번 표시됩니다. **이 화면은 다시 볼 수 없으므로 반드시 캡처하거나 안전한 곳에 따로 적어두세요.** (자세한 이유는 [FAQ](#faq-자주-묻는-질문) 참고)
+4. **프로젝트 만들기** — 화면 왼쪽 "+"를 눌러 프로젝트(예: "회사 업무", "개인 프로젝트")를 하나 만듭니다.
+5. **첫 키 등록** — "+ 키 추가" 버튼을 눌러 API 키 이름과 실제 값을 입력하고 저장합니다.
+
+이제 `Ctrl+K`를 누르면 언제든 저장한 키를 검색할 수 있습니다.
+
+---
+
+## 실행 방법
+
+### 설치 파일로 실행 (일반 사용자)
+
+시작 메뉴 또는 바탕화면 아이콘을 더블클릭하면 됩니다. 별도 설정이 필요 없습니다.
+
+### 소스 코드로 실행 (개발자, 개발 모드)
+
+[필요 프로그램](#필요-프로그램)이 모두 설치되어 있어야 합니다.
+
+```bash
+# 1. 저장소를 내려받은 폴더로 이동
+cd API-Key-SafePass
+
+# 2. 프론트엔드 의존성 설치 (최초 1회, 몇 분 소요)
+npm install
+
+# 3. 개발 모드로 실행 (프론트엔드 + Rust 백엔드 동시 실행, 창이 자동으로 뜸)
+npm run tauri dev
+```
+
+- 최초 실행 시 Rust 쪽 의존성을 컴파일하느라 1~5분 정도 걸릴 수 있습니다(컴퓨터 성능에 따라 다름). 이후 실행부터는 훨씬 빨라집니다.
+- 코드를 수정하면 화면(프론트엔드)은 자동으로 새로고침됩니다. Rust 코드(`src-tauri/` 폴더)를 수정한 경우에는 다시 컴파일되며 앱이 재시작됩니다.
+
+### 소스 코드로 설치 파일 직접 만들기 (배포용 빌드)
+
+```bash
+npm run tauri build
+```
+
+빌드가 끝나면 `src-tauri/target/release/bundle/` 폴더 안에 `.exe`(포터블)와 `nsis/`, `msi/` 폴더에 설치 파일이 생성됩니다.
+
+---
+
+## 사용 방법 / 작동 방법
+
+### 첫 실행 흐름
+
+1. **잠금 해제 화면** — 마스터 비밀번호를 입력합니다. 처음 실행이면 비밀번호를 새로 만드는 화면이 나옵니다. 5회 연속 틀리면 잠시 대기해야 합니다(무차별 대입 공격 방지).
+2. **대시보드** — 등록한 키의 개수, 최근 사용한 키, 만료 예정인 키를 한눈에 보여줍니다.
+3. **프로젝트/태그로 정리** — 왼쪽 사이드바에서 프로젝트별, 또는 AI 제공자(플랫폼)별로 키를 묶어 볼 수 있습니다.
+
+### 키 검색하고 복사하기
+
+- `Ctrl+K`를 누르거나 화면 위쪽 검색창에 입력하면 즉시 검색됩니다.
+- 한글 초성 검색을 지원합니다 (예: "ㅇㅍㅇ"를 입력하면 "OpenAI"가 검색됨).
+- 키 옆의 복사 아이콘을 누르면 클립보드에 복사되고, 설정한 시간(기본 30초)이 지나면 클립보드에서 자동으로 지워집니다.
+
+### 키 등록/수정
+
+- 오른쪽 아래 "+" 버튼(또는 프로젝트 화면의 "키 추가")을 누릅니다.
+- 이름, 실제 키 값, 제공자(OpenAI/Claude/Gemini 등 100개 이상의 프리셋에서 선택 가능, 직접 입력도 가능), 메모, 만료일, 참고 URL을 입력할 수 있습니다.
+- **계정 정보(아이디/비밀번호) 필드**도 함께 저장할 수 있으며, 각 필드 옆의 복사 아이콘을 눌러 바로 복사할 수 있습니다.
+
+### `.env` 파일 내보내기 / 가져오기
+
+- **내보내기**: 프로젝트를 선택한 뒤 ".env" 버튼을 누르면, 해당 프로젝트의 키들을 `프로젝트명=키값` 형식의 `.env` 파일로 저장합니다.
+- **가져오기**: "가져오기" 버튼을 눌러 기존에 갖고 있던 `.env` 파일을 선택하면, 그 안의 키들을 한 번에 등록합니다. 값이 큰따옴표나 작은따옴표로 감싸져 있어도(`KEY="value"`) 자동으로 따옴표를 벗겨내고 저장합니다.
+
+### 백업 · 복원
+
+- **설정 → 백업 · 복원 → "지금 백업"**을 누르면 현재 금고 파일(이미 암호화된 상태)을 원하는 위치에 복사합니다.
+- **"백업에서 복원"**을 누르면 이전 백업 파일을 선택하고 현재 비밀번호로 본인 확인을 한 뒤 복원을 "예약"합니다. 실제 교체는 **앱을 완전히 종료했다가 다시 켤 때** 이루어집니다(안전을 위한 설계, 자세한 원리는 [보안 / 데이터 흐름](#보안--데이터-흐름) 참고).
+- 복원을 예약한 뒤에도 재시작 전이라면 설정 화면에서 언제든 취소할 수 있습니다.
+
+### 복구키 재발급
+
+- 설정 → "복구키 재발급" → 현재 비밀번호 입력 → 새 복구키가 화면에 표시됩니다. 재발급하면 이전 복구키는 즉시 사용할 수 없게 됩니다.
+
+### 잠금
+
+- `Ctrl+L`을 누르거나 화면 왼쪽의 잠금 버튼을 누르면 즉시 잠깁니다.
+- 설정한 시간 동안 사용하지 않으면 자동으로 잠깁니다(자동 잠금 시간은 설정에서 조절 가능, 0으로 설정하면 비활성화).
+- 창이 다른 프로그램에 가려지면(포커스를 잃으면) 일정 시간 뒤 화면이 흐려집니다(어깨너머 훔쳐보기 방지).
+
+---
+
+## 명령어
+
+### npm 스크립트 (프론트엔드, `package.json` 기준)
+
+| 명령어 | 설명 |
+|---|---|
+| `npm run dev` | Vite 개발 서버만 실행 (브라우저에서 화면만 확인, Rust 백엔드 없이) |
+| `npm run build` | 타입 검사(`tsc`) 후 프로덕션 빌드 (`dist/` 폴더 생성) |
+| `npm run preview` | 빌드된 결과물을 미리보기 |
+| `npm run tauri <하위명령어>` | Tauri CLI 직접 호출 (`npm run tauri dev`, `npm run tauri build` 등) |
+
+### Rust/Cargo 명령어 (백엔드, `src-tauri/` 폴더 안에서 실행)
+
+| 명령어 | 설명 |
+|---|---|
+| `cargo test` | Rust 단위 테스트 전체 실행 |
+| `cargo build` | Rust 백엔드만 빌드 (디버그 모드) |
+| `cargo clippy` | Rust 코드 정적 분석(린트) |
+
+### 앱 안 키보드 단축키
+
+| 단축키 | 동작 |
+|---|---|
+| `Ctrl + K` | 검색창 열기 |
+| `Ctrl + L` | 즉시 잠금 |
+| `Esc` | 검색창 닫기 |
+
+---
+
+## 업데이트 내용 요약
 
 <details>
-<summary>Click to expand full list</summary>
+<summary><strong>v0.1.0 (2026-03-21) — 정식 배포, 다운로드 가능</strong> · 클릭해서 펼치기</summary>
 
-**AI Platforms**: OpenAI, Anthropic (Claude), Google AI (Gemini), Google Vertex AI, Groq, Mistral AI, Cohere, Perplexity, Together AI, Fireworks AI, DeepSeek, xAI (Grok), Replicate, HuggingFace, Stability AI, ElevenLabs, AssemblyAI, Pinecone, Weaviate, Voyage AI, AI21 Labs, Cerebras, SambaNova, Upstage, Naver Clova, Kakao (Karlo), OpenRouter, Ollama, LM Studio, Midjourney, RunwayML, Fal.ai, DALL-E, Whisper, Suno AI, Udio, Ideogram, Leonardo AI, Cursor, Copilot, Tavily, Exa, Serper, Recraft AI, Flux, Luma AI, Pika, Heygen, D-ID, Synthesia, Typecast, Kling AI, Minimax, Zhipu AI, Baidu, Alibaba (Qwen), Coze, Dify, LangSmith, Weights & Biases
+- AES-256-GCM 암호화 키 저장
+- 마스터 비밀번호 + 복구키 로그인
+- 100개 이상 AI/서비스 제공자 프리셋 (OpenAI, Claude, Gemini 등)
+- 한국어 초성 검색 (예: `ㅇㅍ` → OpenAI)
+- 붙여넣기만 하면 어떤 제공자의 키인지 자동 인식
+- `.env` 파일 내보내기 / 가져오기
+- 자동 잠금 · 클립보드 자동 삭제 · 창 흐림(blur) 시간을 사용자가 직접 설정 가능
+- 스크린샷 방지, 개발자 도구(DevTools) 차단
+- 무차별 대입 로그인 시도 방어
+- 참고 URL 여러 개 저장 가능
 
-**Cloud/Infrastructure**: AWS, Google Cloud, Azure, Vercel, Supabase, Firebase, Cloudflare, Netlify, Railway, Render, DigitalOcean, Neon, PlanetScale, Upstash, MongoDB Atlas, Heroku, Fly.io
+</details>
 
-**Developer Tools**: GitHub, GitLab, Notion, Sentry, Postman, npm, Docker Hub, Algolia, Airtable, Linear
+<details>
+<summary><strong>미배포 (소스 빌드로만 사용 가능) — 최근 작업 내용</strong> · 클릭해서 펼치기</summary>
 
-**Payments**: Stripe, PayPal, Toss Payments, Iamport (PortOne)
+아래 기능은 코드로는 구현·테스트 완료되었으나, **아직 GitHub Releases에 새 버전으로 배포되지 않았습니다.** 지금 쓰려면 [소스 코드로 직접 빌드](#실행-방법)해야 합니다.
 
-**Communication**: Slack, Discord, Telegram, Twilio, SendGrid, Resend, Mailgun, KakaoTalk
-
-**+ Custom**: Add any provider not in this list
+- 계정 정보(아이디/비밀번호) 필드에 원클릭 복사 버튼 추가
+- `.env` 가져오기 버그 수정: 값이 따옴표로 감싸진 경우 정상 처리 + 가져오기 도중 실패 시 부분 저장되지 않도록 트랜잭션 처리
+- 복구키 재발급 화면 추가
+- 백업 · 복원 기능 추가 (앱 재시작 시점에만 안전하게 적용되는 2단계 검증 구조)
 
 </details>
 
 ---
 
-## Security Architecture
+## 파일 / 문서 위치
+
+### 내 데이터는 어디에 저장되나요?
+
+이 앱은 서버나 클라우드를 쓰지 않으므로, 모든 데이터는 **내 컴퓨터의 다음 폴더**에만 저장됩니다.
 
 ```
-Master Password
-    │
-    ├──→ Argon2id Hash → Stored in DB (verification only)
-    │
-    └──→ Argon2id KDF + Salt → 256-bit Encryption Key (memory only)
-                                    │
-                                    ├──→ AES-256-GCM Encrypt → Stored API keys
-                                    │
-                                    └──→ On Lock: zeroed from memory
+C:\Users\<내 사용자 이름>\AppData\Roaming\com.apikeyvault.app\vault.db
+```
 
-Recovery Key (32 bytes, shown once)
-    │
-    └──→ Encrypts master password → stored for emergency recovery
+- `vault.db` 파일 하나에 프로젝트, 키, 태그, 설정이 모두 들어 있습니다.
+- 이 파일 자체가 이미 암호화되어 있으므로, 파일을 열어봐도 평문으로는 보이지 않습니다.
+- `AppData` 폴더는 기본적으로 숨김 폴더입니다. 탐색기 주소창에 위 경로를 직접 붙여넣으면 바로 이동할 수 있습니다.
+
+### 프로젝트 안 문서 위치 (소스 코드 기준)
+
+| 문서 | 위치 | 내용 |
+|---|---|---|
+| 이 문서 | `README.md` | 전체 프로젝트 개요 (지금 보고 있는 문서) |
+| 영문 버전 | `README.en.md` | 위 문서의 영어 번역 |
+| 왕초보 가이드 | `GUIDE.md` / `GUIDE.en.md` | 컴퓨터가 낯선 분들을 위한 클릭 단위 설치·사용 안내 |
+| 테스트 가이드 | `TESTING_GUIDE.ko.md` | 개발자가 기능을 검증할 때 쓰는 상세 테스트 절차 |
+| 작업 체크포인트 | `CHECKPOINT.md` | 다음에 이어서 할 작업과 위험 요소 기록 (개발 진행 상황 추적용) |
+| 기획 문서 | `.PRD/` 폴더 | 이 앱을 왜, 어떻게 만들었는지에 대한 기획·설계 문서 |
+| 라이선스 | `LICENSE` | Apache License 2.0 전문 |
+
+---
+
+## 워크플로우
+
+### 일반 사용자의 하루 사용 흐름
+
+```
+앱 실행 → 마스터 비밀번호 입력(잠금 해제)
+   → Ctrl+K로 필요한 키 검색 → 복사 아이콘 클릭 → 원하는 곳에 붙여넣기
+   → (사용이 끝나면) Ctrl+L로 잠그거나, 자동 잠금 시간이 지나면 자동으로 잠김
+```
+
+### 새 프로젝트를 시작할 때
+
+```
+프로젝트 생성 → 키 등록(또는 .env 가져오기로 한 번에 등록)
+   → 작업 중 필요할 때마다 검색해서 복사
+   → 작업이 끝나면 .env로 내보내서 실제 프로젝트 폴더에 배치
+```
+
+### 개발자의 코드 기여 흐름
+
+```
+git clone → npm install → npm run tauri dev(개발 모드 확인)
+   → 코드 수정 → cargo test / npm run build로 검증
+   → git commit → Pull Request 생성
 ```
 
 ---
 
-## FAQ
+## 아키텍처
 
-**Q: What if I forget my master password?**
-Use the recovery key you saved during setup. If you lost that too, your data cannot be recovered — this is by design for maximum security.
+이 앱은 3개의 층으로 나뉘어 있고, 서로 정해진 통로로만 통신합니다.
 
-**Q: Can I move my keys to another PC?**
-Use .env export to save keys to a file, then import on the new PC.
+```
+┌─────────────────────────────────────────────┐
+│  화면 (Frontend)                              │
+│  React 18 + TypeScript + Tailwind CSS         │
+│  src/ 폴더                                    │
+└───────────────────┬───────────────────────────┘
+                     │ Tauri IPC (invoke 함수 호출)
+                     │ — 브라우저처럼 보이지만 실제로는
+                     │   외부 인터넷이 아닌, 오직 아래 Rust 코드와만 통신
+┌───────────────────▼───────────────────────────┐
+│  백엔드 (Backend)                              │
+│  Rust                                          │
+│  src-tauri/src/                                │
+│  ├─ commands/  (화면 요청을 처리하는 33개 함수) │
+│  ├─ crypto/    (AES-256-GCM 암호화/복호화,      │
+│  │              Argon2id 비밀번호 해시)          │
+│  ├─ db/        (SQLite 쿼리)                    │
+│  └─ models/    (데이터 구조 정의)               │
+└───────────────────┬───────────────────────────┘
+                     │ rusqlite (SQLite 드라이버)
+┌───────────────────▼───────────────────────────┐
+│  저장소 (Storage)                              │
+│  SQLite 파일 하나 (vault.db)                   │
+│  내 컴퓨터 안에만 존재, 서버 없음                │
+└─────────────────────────────────────────────┘
+```
 
-**Q: Does it need internet?**
-No. The app is 100% offline. Keys never touch the network.
+- 화면(React)은 절대로 SQLite 파일을 직접 건드리지 않습니다. 반드시 Rust로 만들어진 "명령어(command)"를 통해서만 데이터를 주고받습니다.
+- 앱의 보안 설정(`tauri.conf.json`)은 `connect-src`를 `ipc:` 로컬 통로로만 제한하여, 코드에 버그가 있더라도 외부 인터넷으로 데이터가 나갈 수 없도록 막아 놓았습니다.
 
-**Q: The app won't open / keeps saying "wrong password"**
-After 5 failed attempts, the app locks for 60 seconds. Wait and try again.
+### 데이터베이스 구조 (SQLite 테이블 7개)
 
-**Q: I changed my password and now recovery key doesn't work**
-After a password change, the old recovery key is invalidated. You'll need to set up a new one.
+| 테이블 | 용도 |
+|---|---|
+| `app_settings` | 마스터 비밀번호 해시, 사용자 환경설정 등 |
+| `projects` | 프로젝트(폴더) 목록 |
+| `api_keys` | 암호화된 API 키 값과 메타데이터 |
+| `tags` | 태그 목록 |
+| `api_key_tags` | 키와 태그를 연결하는 표 |
+| `usage_logs` | 최근 사용 기록 (대시보드 표시용) |
+| `backup_history` | 백업을 실행한 이력 |
 
 ---
 
-## For Developers
+## 보안 / 데이터 흐름
 
-### Prerequisites
-- Node.js 18+
-- Rust (via [rustup](https://rustup.rs))
-- Tauri CLI: `npm install -g @tauri-apps/cli`
+> 이 앱의 핵심 목적은 "보안"입니다. 아래 내용을 정확히 이해하고 사용하는 것을 권장합니다.
 
-### Development
-```bash
-npm install
-npm run tauri dev
-```
+### 1. 마스터 비밀번호는 저장되지 않습니다
 
-### Build
-```bash
-npm run tauri build
-```
+마스터 비밀번호 원본은 어디에도 저장되지 않습니다. 대신 **Argon2id**라는 방식으로 되돌릴 수 없게 변형(해시)한 값만 저장하고, 다음 로그인 시 입력한 비밀번호를 같은 방식으로 변형해 비교합니다. Argon2id는 2015년 Password Hashing Competition에서 우승한 방식으로, 무차별 대입 공격에 강하도록 설계되었습니다.
 
-### Tests
-```bash
-cd src-tauri && cargo test
-```
+### 2. 실제 키 값은 AES-256-GCM으로 암호화됩니다
 
-### Tech Stack
+등록한 API 키 값은 파일에 그대로 저장되지 않고, 마스터 비밀번호에서 파생된 암호화 키로 **AES-256-GCM** 방식으로 암호화되어 저장됩니다. 이 암호화 키는 잠금을 해제하는 동안에만 메모리에 있다가, 잠그면 메모리에서 사라집니다.
 
-| Component | Technology |
-|-----------|-----------|
-| Framework | Tauri v2 (Rust backend) |
-| Frontend | React 18 + TypeScript |
-| Styling | Tailwind CSS |
-| Database | SQLite (rusqlite, bundled) |
-| Encryption | AES-256-GCM (aes-gcm crate) |
-| Password Hashing | Argon2id (argon2 crate) |
-| Build | Vite 6 |
+### 3. 인터넷으로 전송되지 않습니다
+
+`tauri.conf.json`의 보안 정책(CSP)이 `connect-src ipc: http://ipc.localhost`로 고정되어 있어, 앱 내부에서 외부 서버로 네트워크 요청을 보내는 것 자체가 구조적으로 차단됩니다. 이 앱은 서버가 없습니다.
+
+### 4. 클립보드 자동 삭제
+
+키를 복사하면 클립보드에 잠시 저장되는데, 설정한 시간(기본 30초)이 지나면 자동으로 클립보드 내용을 지웁니다. 단, 그 사이에 사용자가 클립보드에 다른 내용을 직접 복사했다면 지우지 않습니다(사용자가 새로 복사한 내용을 실수로 지우지 않기 위함).
+
+### 5. 화면 가리기(Blur)
+
+앱 창이 다른 창에 가려지거나 포커스를 잃으면, 일정 시간 뒤 화면 내용이 흐려집니다. 자리를 비운 사이 옆에서 화면을 훔쳐보는 것을 방지하기 위함입니다.
+
+### 6. 백업 파일도 암호화된 상태 그대로입니다
+
+백업은 이미 암호화되어 있는 `vault.db` 파일을 그대로 복사하는 방식입니다. 별도의 암호화 과정이 필요 없으며, 백업 파일만으로는 마스터 비밀번호 없이 내용을 볼 수 없습니다.
+
+### 7. 복원은 2단계 안전장치를 거칩니다
+
+1. **복원 예약 단계**: 복원하기 전, 반드시 현재 비밀번호로 본인 확인을 합니다. 선택한 백업 파일이 진짜 SQLite 데이터베이스 파일인지(파일 첫 16바이트 확인) 검사한 뒤, 실제 사용 중인 `vault.db`는 건드리지 않고 임시 파일(`vault.db.pending-restore`)로만 저장해 둡니다.
+2. **실제 적용 단계**: 앱을 완전히 종료했다가 다시 켤 때만 적용됩니다. 이 시점에 임시 파일이 손상되지 않았는지 다시 한번 검사하고, 문제가 없을 때만 교체합니다. 이때 기존에 쓰던 `vault.db`는 삭제하지 않고 `vault.db.bak-<시각>` 이름으로 옆에 남겨둡니다.
+3. 즉, 복원 과정에서 데이터베이스 연결이 열려 있는 상태로 파일이 바뀌는 일이 없고, 잘못된 파일로 복원하려 해도 기존 데이터가 사라지지 않습니다.
+
+### 8. 마스터 비밀번호를 잃어버리면?
+
+**복구키**가 유일한 구제 수단입니다. 복구키는 최초 설정 시 한 번만 화면에 표시되며, 이후에는 저장된 원본을 다시 보여주지 않습니다. 마스터 비밀번호와 복구키를 **둘 다** 잃어버리면 저장된 데이터를 되찾을 방법이 없습니다(이 앱은 뒷문(backdoor)이나 서버 쪽 초기화 기능을 의도적으로 두지 않았습니다 — 그것이 곧 보안입니다). 자세한 내용은 [FAQ](#faq-자주-묻는-질문)를 확인하세요.
 
 ---
 
-## License
+## 문제 / 오류 대처 방법
 
-MIT
+| 증상 | 원인 | 대처 방법 |
+|---|---|---|
+| 설치 시 "Windows에서 PC를 보호했습니다" 경고 | 코드 서명 인증서 미구매(초기 버전) | "추가 정보" → "실행"을 클릭. 소스 코드가 공개되어 있어 직접 검증 가능합니다. |
+| 마스터 비밀번호를 잊어버림 | — | 로그인 화면의 "복구키로 로그인" 기능을 사용합니다. 복구키도 없다면 데이터 복구가 불가능합니다([보안 항목 8번](#보안--데이터-흐름) 참고). |
+| 비밀번호를 5회 이상 틀림 | 무차별 대입 방지 기능 작동 | 일정 시간 기다린 뒤 다시 시도하세요. |
+| 앱이 실행되지 않음 | WebView2 런타임 문제일 수 있음 | Windows 업데이트를 최신으로 유지하거나, [Microsoft Edge WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) 런타임을 설치하세요. |
+| `.env` 가져오기 후 값이 이상하게 저장됨 | v0.1.0 정식 버전의 알려진 버그(따옴표 처리) | 이 문제는 코드에서 이미 수정되었으나 아직 정식 배포 전입니다. [소스 코드로 직접 빌드](#실행-방법)하면 해결됩니다. |
+| 백업/복원 후 데이터가 이상함 | 복원이 재시작 전에는 적용되지 않는 구조 | 반드시 앱을 완전히 종료했다가 다시 켜야 복원이 적용됩니다. 이상이 있으면 자동 생성된 `vault.db.bak-<시각>` 파일로 되돌릴 수 있습니다([파일 위치](#파일--문서-위치) 폴더 확인). |
+| 개발 모드(`npm run tauri dev`) 실행 시 포트 충돌 오류 | 다른 프로그램이 같은 포트(7845)를 사용 중 | 충돌 중인 프로그램을 종료하거나, `vite.config.ts`의 포트 설정을 변경하세요. |
+| `cargo build` 시 링커 오류 (Windows) | Microsoft C++ Build Tools 미설치 | [필요 프로그램](#필요-프로그램) 항목의 C++ Build Tools를 설치하세요. |
+| 여기 없는 문제가 발생함 | — | [GitHub Issues](https://github.com/sodam-ai/API-Key-SafePass/issues)에 증상, 재현 방법, Windows 버전을 함께 남겨주세요. |
+
+---
+
+## FAQ (자주 묻는 질문)
+
+**Q. 마스터 비밀번호와 복구키를 둘 다 잃어버리면 어떻게 되나요?**
+A. 저장된 데이터를 되찾을 방법이 없습니다. 이 앱은 개발자도 우회해서 열람할 수 있는 뒷문을 두지 않았습니다. 반드시 복구키를 최초 설정 시 안전한 곳에 별도로 저장해 두세요.
+
+**Q. 인터넷 연결이 꼭 필요한가요?**
+A. 설치 파일을 내려받을 때만 필요합니다. 설치 후 실제 사용(키 저장, 검색, 복사 등)에는 인터넷이 전혀 필요 없습니다.
+
+**Q. 다른 컴퓨터와 자동으로 동기화되나요?**
+A. 아니요. 이 앱은 의도적으로 클라우드 동기화 기능을 만들지 않았습니다(로컬 전용이 핵심 가치입니다). 여러 컴퓨터에서 같은 데이터를 쓰고 싶다면 [백업 · 복원](#사용-방법--작동-방법) 기능으로 파일을 직접 옮겨야 합니다.
+
+**Q. 무료인가요?**
+A. 네, 무료입니다. 소스 코드도 Apache License 2.0으로 공개되어 있습니다.
+
+**Q. 회사에서 업무용으로 써도 되나요? 상업적으로 이용해도 되나요?**
+A. 가능합니다. Apache License 2.0은 상업적 이용, 수정, 재배포를 폭넓게 허용합니다. 다만 법적 의무와 책임 범위는 반드시 [법률 / 저작권 / 라이선스 / 상업적 용도](#법률--저작권--라이선스--상업적-용도) 섹션과 `LICENSE` 파일 원문을 직접 확인하시기 바랍니다.
+
+**Q. 모바일 앱이나 브라우저 확장 프로그램도 있나요?**
+A. 없습니다. 의도적으로 만들지 않았습니다(공격 표면을 늘리지 않기 위한 설계 결정입니다). 데스크톱 전용입니다.
+
+**Q. macOS나 Linux에서도 쓸 수 있나요?**
+A. 현재는 Windows용 설치 파일만 정식 배포되어 있습니다. 소스 코드 구조상 Tauri가 macOS/Linux 빌드도 지원하지만, 이 프로젝트에서 아직 빌드·테스트·배포하지 않았습니다.
+
+**Q. 이 앱이 내 키를 어딘가로 전송하지 않는다는 걸 어떻게 믿나요?**
+A. 소스 코드가 전부 공개되어 있으므로 누구나 직접 확인할 수 있습니다. 특히 `src-tauri/tauri.conf.json`의 `connect-src` 설정이 로컬 통로(`ipc:`)로만 제한되어 있어, 코드 구조상 외부로 네트워크 요청을 보낼 수 없게 되어 있습니다.
+
+**Q. 소스 코드를 수정해서 제 이름으로 팔아도 되나요?**
+A. Apache License 2.0은 이를 허용합니다. 다만 원본 저작권 고지와 라이선스 사본을 유지해야 하고, 수정한 파일이 있다면 그 사실을 명시해야 합니다. 정확한 조건은 반드시 `LICENSE` 파일 원문을 확인하세요. 이 답변은 참고용이며 법적 효력을 갖는 해석이 아닙니다.
+
+---
+
+## 법률 / 저작권 / 라이선스 / 상업적 용도
+
+> 아래 내용은 이 소프트웨어의 라이선스 조건을 요약해 설명한 것이며, 법률 자문이 아닙니다. 법적 판단이 필요한 상황이라면 변호사 등 전문가의 확인을 받으시기 바랍니다.
+
+- **라이선스**: [Apache License, Version 2.0](./LICENSE)
+- **저작권자**: Copyright 2026 SoDam AI Studio
+- **원문 위치**: 이 저장소 루트의 [`LICENSE`](./LICENSE) 파일 (공식 원문, 요약이 원문과 다르게 읽힐 경우 원문이 우선합니다)
+
+### 허용되는 것
+
+- 상업적 이용 (회사 업무, 유료 서비스에 포함하는 등)
+- 수정 및 2차 저작물(Derivative Works) 제작
+- 재배포 (원본 그대로, 또는 수정 후)
+- 특허 사용권 부여 (Apache 2.0 제3조, 기여자의 특허 클레임에 대해)
+
+### 반드시 지켜야 하는 것 (Apache 2.0 제4조 요약)
+
+- 재배포 시 라이선스 사본(`LICENSE` 파일)을 함께 포함해야 합니다.
+- 수정한 파일이 있다면, 수정했다는 사실을 눈에 띄게 표시해야 합니다.
+- 원본의 저작권·특허·상표·귀속(attribution) 고지를 유지해야 합니다.
+
+### 보증 및 책임 제한 (Apache 2.0 제7·8조 요약)
+
+이 소프트웨어는 **어떠한 형태의 보증도 없이 "있는 그대로(AS IS)"** 제공됩니다. 상품성, 특정 목적 적합성, 권리 비침해에 대한 묵시적 보증을 포함해 어떠한 보증도 하지 않습니다. 저작권자 및 기여자는 이 소프트웨어의 사용 또는 사용 불능으로 인해 발생하는 어떠한 손해(직접·간접·특수·부수적 손해 포함)에 대해서도 책임지지 않습니다. 이 소프트웨어는 **보안 관련 도구**이지만, 이를 사용함으로써 발생할 수 있는 데이터 손실, 키 유출, 마스터 비밀번호·복구키 분실로 인한 접근 불능 등에 대해 저작권자는 법이 허용하는 최대 범위 내에서 책임을 지지 않습니다. 정확한 법적 조건은 [`LICENSE`](./LICENSE) 원문 제7조·제8조를 확인하세요.
+
+### 상표
+
+이 라이선스는 저작권자의 상호, 상표, 서비스표, 제품명을 사용할 권리를 부여하지 않습니다(Apache 2.0 제6조). "API Key SafePass"라는 이름과 "SoDam AI Studio"라는 이름을 사용해 별도의 제품을 홍보하려면 별도 협의가 필요합니다.
+
+### 제3자 구성 요소
+
+이 프로젝트는 다음과 같은 오픈소스 라이브러리를 사용합니다. 각 라이브러리는 자체 라이선스를 따르며, 이 프로젝트의 Apache License 2.0과는 별개입니다(대부분 MIT 또는 Apache 2.0 계열로 호환됩니다).
+
+| 라이브러리 | 용도 |
+|---|---|
+| Tauri v2 | 데스크톱 앱 프레임워크 |
+| React, React DOM | 화면 UI |
+| rusqlite | SQLite 데이터베이스 연동 |
+| aes-gcm, argon2 | 암호화 및 비밀번호 해시 |
+| Tailwind CSS | 스타일링 |
+
+정확한 각 라이브러리의 라이선스는 `package.json`(프론트엔드) 및 `src-tauri/Cargo.toml`(백엔드)에 명시된 버전을 기준으로 npm/crates.io에서 직접 확인할 수 있습니다.
+
+---
+
+<div align="center">
+
+문제가 발생했거나 궁금한 점이 있다면 [GitHub Issues](https://github.com/sodam-ai/API-Key-SafePass/issues)에 남겨주세요.
+
+Made with care by **SoDam AI Studio** · Licensed under [Apache License 2.0](./LICENSE)
+
+</div>

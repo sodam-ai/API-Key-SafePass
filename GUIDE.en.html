@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Key SafePass — Absolute Beginner's Guide</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-alt: #f6f7f9; --fg: #1a1d23; --fg-muted: #57606a;
+    --border: #d8dee4; --accent: #2f5fd6; --accent-bg: #eef2ff;
+    --code-bg: #f0f2f5; --warn-bg: #fff8e6; --warn-border: #e8c766;
+    --danger-bg:#fdecea; --danger-border:#e0554a; --table-head: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14171c; --bg-alt: #1b1f26; --fg: #e6e9ef; --fg-muted: #9aa4b2;
+      --border: #2c333d; --accent: #7fa2ff; --accent-bg: #1c2436;
+      --code-bg: #1e232b; --warn-bg: #2a2410; --warn-border: #6b5a1a;
+      --danger-bg:#2c1917; --danger-border:#8a3a32; --table-head: #1e232b; }
+  }
+  :root[data-theme="dark"] { --bg: #14171c; --bg-alt: #1b1f26; --fg: #e6e9ef; --fg-muted: #9aa4b2;
+      --border: #2c333d; --accent: #7fa2ff; --accent-bg: #1c2436;
+      --code-bg: #1e232b; --warn-bg: #2a2410; --warn-border: #6b5a1a;
+      --danger-bg:#2c1917; --danger-border:#8a3a32; --table-head: #1e232b; }
+  :root[data-theme="light"] { --bg: #ffffff; --bg-alt: #f6f7f9; --fg: #1a1d23; --fg-muted: #57606a;
+      --border: #d8dee4; --accent: #2f5fd6; --accent-bg: #eef2ff;
+      --code-bg: #f0f2f5; --warn-bg: #fff8e6; --warn-border: #e8c766;
+      --danger-bg:#fdecea; --danger-border:#e0554a; --table-head: #eef1f5; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family: -apple-system, "Segoe UI", sans-serif; line-height:1.8; font-size:1.02rem; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+  h1 { font-size: 1.9rem; margin: 0 0 .3rem; }
+  h2 { font-size: 1.35rem; margin: 2.6rem 0 1rem; padding-bottom:.5rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.08rem; margin: 1.4rem 0 .5rem; color: var(--accent); }
+  p { margin: .8rem 0; }
+  a { color: var(--accent); }
+  .tagline { color: var(--fg-muted); font-size: 1.02rem; margin-bottom: 1rem; }
+  .langbar { background:var(--bg-alt); border:1px solid var(--border); border-radius:8px; padding:.8rem 1rem; margin: 1rem 0 2rem; font-size:.95rem; }
+  table { border-collapse: collapse; width:100%; margin: 1rem 0; overflow-x:auto; display:block; }
+  th, td { border:1px solid var(--border); padding:.6rem .9rem; text-align:left; font-size:.94rem; vertical-align:top; }
+  th { background:var(--table-head); }
+  code { background:var(--code-bg); padding:.15rem .4rem; border-radius:4px; font-size:.9em; font-family: "Cascadia Code", Consolas, monospace; }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  blockquote { margin: 1rem 0; padding: .9rem 1.2rem; background: var(--warn-bg); border-left: 4px solid var(--warn-border); border-radius: 0 8px 8px 0; }
+  blockquote p { margin:.3rem 0; }
+  .danger { margin: 1rem 0; padding: .9rem 1.2rem; background: var(--danger-bg); border-left: 4px solid var(--danger-border); border-radius: 0 8px 8px 0; }
+  .danger p { margin:.3rem 0; }
+  ul, ol { padding-left: 1.5rem; }
+  li { margin: .4rem 0; }
+  hr { border:none; border-top:1px solid var(--border); margin: 2.5rem 0; }
+  nav.toc { background: var(--bg-alt); border:1px solid var(--border); border-radius:10px; padding:1rem 1.5rem; }
+  nav.toc ol { margin:.4rem 0; }
+  .footer { text-align:center; color:var(--fg-muted); margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>API Key SafePass — Absolute Beginner's Guide</h1>
+<p class="tagline">Written step-by-step, from the very beginning, for people who are new to computers, the internet, and AI.<br>Nothing is skipped on the assumption that "you probably already know this." Just follow along slowly.</p>
+<div class="langbar">
+  <strong>Language</strong>: English (this document) · <a href="./GUIDE.html">한국어</a><br>
+  <strong>Want the short version?</strong> → <a href="./README.en.html">README.en.html</a> (full project overview, including developer information)
+</div>
+
+<h2>Table of Contents</h2>
+<nav class="toc">
+<ol>
+<li><a href="#before">Before You Read This</a></li>
+<li><a href="#prep">What You'll Need</a></li>
+<li><a href="#step1">Step 1 — Download the Program</a></li>
+<li><a href="#step2">Step 2 — Install It</a></li>
+<li><a href="#step3">Step 3 — First Launch and Setting a Password</a></li>
+<li><a href="#step4">Step 4 — Save Your First Key</a></li>
+<li><a href="#step5">Step 5 — Find and Copy a Saved Key</a></li>
+<li><a href="#daily">Everyday Use</a></li>
+<li><a href="#never">Things You Must Never Do</a></li>
+<li><a href="#trouble">If Something Goes Wrong</a></li>
+<li><a href="#faq">Frequently Asked Questions</a></li>
+<li><a href="#cost">Cost and Terms of Use</a></li>
+</ol>
+</nav>
+
+<hr>
+<h2 id="before">Before You Read This</h2>
+<h3>What does this program actually do?</h3>
+<p>Have you ever signed up for ChatGPT or some other AI or internet service and received an "API key" — a long, password-like string (something like <code>sk-abc123...</code>)? Many people don't know where to keep it safely, so they end up saving it in a notepad file, texting it to themselves, or just leaving a browser tab open forever.</p>
+<p><strong>API Key SafePass</strong> stores all these strings like a <strong>digital drawer with a lock on it</strong>. You only need to remember one password (called the "master password"), and everything you've stored inside can be safely retrieved with it.</p>
+<h3>Can I follow along even if I'm not good with computers?</h3>
+<p>Yes. This guide explains even basic things like:</p>
+<ul>
+<li><strong>Double-click</strong>: pressing the left mouse button twice, quickly, in a row. Used to "open" a program or file.</li>
+<li><strong>Folder</strong>: a yellow (or blue) box-shaped icon used to organize files on your computer — similar to a drawer or a physical folder.</li>
+<li><strong>Download</strong>: bringing a file from the internet onto your own computer. It usually ends up in your "Downloads" folder.</li>
+<li><strong>Address bar</strong>: the long input box at the top of your web browser (Chrome, Edge, etc.) where you type a website's address.</li>
+</ul>
+<h3>Is this program safe?</h3>
+<p>Yes. This program <strong>has no server connected to the internet at all.</strong> Anything you save stays only on your own computer and is never sent anywhere. The technical reasoning is explained in the <a href="./README.en.html#security">Security section of README.en.html</a>, but this guide focuses purely on how to use it.</p>
+
+<h2 id="prep">What You'll Need</h2>
+<table>
+<tr><th>Item</th><th>Description</th></tr>
+<tr><td>A Windows computer</td><td>A desktop or laptop running Windows 10 or Windows 11. (No phone version exists yet.)</td></tr>
+<tr><td>Internet access</td><td><strong>Only for Step 1 (downloading).</strong> You can turn it off afterward and still use the app.</td></tr>
+<tr><td>A few minutes</td><td>About 5–10 minutes from download to first use.</td></tr>
+</table>
+
+<h2 id="step1">Step 1 — Download the Program</h2>
+<ol>
+<li>Open a web browser on your computer. Usually you'll find a blue circle icon (Microsoft Edge) or a circle made of red/yellow/green/blue (Google Chrome) on your desktop or taskbar (the bar at the bottom of the screen) — double-click it.</li>
+<li>Click once on the long input box at the very top of the browser window (the address bar).</li>
+<li>Type the following address exactly, then press <code>Enter</code> on your keyboard.
+<pre><code>https://github.com/sodam-ai/API-Key-SafePass/releases</code></pre></li>
+<li>A page appears showing "v0.1.0" with a green "Latest" label.</li>
+<li>Scroll down a little using your mouse wheel until you see a section labeled <strong>"Assets."</strong> Click it to expand the file list.</li>
+<li>Find and click the following file. <strong>The file name must match exactly:</strong>
+<pre><code>API.Key.SafePass_0.1.0_x64-setup.exe</code></pre>
+<blockquote><p>Why this one? It's the "installer" version, which registers cleanly in your program list and is easy to uninstall later. (See <a href="./README.en.html#download">README.en.html's Download section</a> for what the other files are for.)</p></blockquote>
+</li>
+<li>Clicking it starts the download automatically. You'll see a "downloading" indicator near the bottom or top-right of the browser. Wait for it to finish (usually just a few seconds — the file is only about 1.8MB).</li>
+<li>Once done, the file is usually saved automatically to your "Downloads" folder. If you're not sure where that is, press the <code>Windows logo key</code>, type "Downloads," and press <code>Enter</code> to open it.</li>
+</ol>
+
+<h2 id="step2">Step 2 — Install It</h2>
+<ol>
+<li>Double-click the downloaded <code>API.Key.SafePass_0.1.0_x64-setup.exe</code> file.</li>
+<li><strong>You may see a blue screen with a "Windows protected your PC" warning.</strong> Don't panic — this isn't a virus. It appears because this program hasn't yet gone through the official (and paid) process of registering itself with Windows as a verified publisher.
+<ul>
+<li>Click the gray text that says <strong>"More info."</strong></li>
+<li>A new button labeled <strong>"Run anyway"</strong> appears below it — click that.</li>
+</ul>
+<blockquote><p>Why you can trust this: this program's entire source code is publicly available online (open source). Even without technical expertise, you can rely on the fact that the developer has documented, down to the exact configuration file, that this app never secretly sends your data anywhere — see <a href="./README.en.html#security">README.en.html's Security section</a>.</p></blockquote>
+</li>
+<li>An installation screen appears. If asked to choose an install location, you don't need to change anything — just keep clicking "Next" or "Install."</li>
+<li>When you see "Installation Complete" or "Finish," click it.</li>
+<li>Now press the <code>Windows logo key</code>, type "API Key SafePass," and the program will appear in the search results.</li>
+</ol>
+
+<h2 id="step3">Step 3 — First Launch and Setting a Password</h2>
+<ol>
+<li>Press the <code>Windows logo key</code>, type "API Key SafePass," and click (or double-click) the program in the search results to launch it.</li>
+<li>A window with a dark background and white text opens, and after a moment a "Set Master Password" screen appears.</li>
+<li><strong>What is a master password?</strong> It's the single key that locks and unlocks the entire program. Just like a banking app password, we recommend choosing a password you don't use anywhere else.</li>
+<li>Type your chosen password into the input box.
+<ul>
+<li>Avoid overly simple passwords (<code>123456</code>, <code>password</code>, etc.).</li>
+<li>We recommend at least 8 characters, mixing letters and numbers.</li>
+<li><strong>You must remember this password.</strong> Keep it somewhere safe.</li>
+</ul>
+</li>
+<li>If there's a confirmation field, type the same password again.</li>
+<li>Click "Set" or "Create."</li>
+</ol>
+<h3>The most important moment — your recovery key</h3>
+<ol start="7">
+<li>As soon as you set your password, the screen shows a <strong>"recovery key"</strong> — a long string of letters and numbers — exactly once.
+<div class="danger"><p><strong>Do not just click "OK" and move on here.</strong><br>This recovery key is your only emergency way back in if you ever forget your master password. <strong>This screen will never appear again.</strong></p></div>
+</li>
+<li>Save your recovery key using one of the following methods:
+<ul>
+<li>Write it down by hand on paper and keep it somewhere safe (a notebook, a drawer, etc.)</li>
+<li>Take a photo with your phone and store it somewhere secure, unrelated to this program (e.g., a password-protected notes app)</li>
+<li>Press <code>Windows logo key + Shift + S</code> to capture part of the screen, and save the captured image in a secure folder</li>
+</ul>
+</li>
+<li>Once you've safely saved your recovery key, click "OK" or "Next" on the screen.</li>
+</ol>
+
+<h2 id="step4">Step 4 — Save Your First Key</h2>
+<ol>
+<li>Click the <strong>"+"</strong> button on the left side of the program window to create a project (an organizing folder). You can name it anything (e.g., "My First Project").</li>
+<li>Once the project is created, you'll see a round <strong>"+"</strong> button in the bottom-right corner. Click it.</li>
+<li>A key-registration screen appears. Fill in the following:
+<ul>
+<li><strong>Name</strong>: something recognizable (e.g., "OpenAI Test Key")</li>
+<li><strong>Value</strong>: paste or type in the actual API key string</li>
+<li>The remaining fields (provider, notes, etc.) are optional — feel free to leave them blank.</li>
+</ul>
+</li>
+<li>Click "Save." If the key you just added appears in the list, you've succeeded.</li>
+</ol>
+
+<h2 id="step5">Step 5 — Find and Copy a Saved Key</h2>
+<ol>
+<li>On your keyboard, hold down <code>Ctrl</code> and press <code>K</code> at the same time (<code>Ctrl+K</code>).</li>
+<li>A search box appears at the top of the screen. Type part of the key's name, and results appear below instantly.</li>
+<li>Once you've found the key you want, click the copy icon next to it (looks like two overlapping squares).</li>
+<li>That value is now copied to your clipboard. Go to wherever you need it (e.g., another program's input field) and press <code>Ctrl+V</code> to paste it.</li>
+<li>Note: the copied value automatically disappears from your clipboard after a set time (30 seconds by default) — a safety measure so that an accidental <code>Ctrl+V</code> later doesn't paste your old key value somewhere unintended.</li>
+</ol>
+
+<h2 id="daily">Everyday Use</h2>
+<ul>
+<li><strong>When you open the app</strong>: enter your master password to unlock it.</li>
+<li><strong>When you need a key</strong>: <code>Ctrl+K</code> to search → click the copy icon → paste it wherever you need it.</li>
+<li><strong>When you're done</strong>: press <code>Ctrl+L</code> to lock immediately. Even if you don't, it locks automatically after a period of inactivity.</li>
+</ul>
+
+<h2 id="never">Things You Must Never Do</h2>
+<ul>
+<li><strong>Never lose your master password and recovery key at the same time.</strong> This program was deliberately built so that not even the developers can unlock it for you (that absence of a backdoor is what makes it secure). Losing both means your data cannot be recovered.</li>
+<li><strong>Never save your recovery key back inside this program.</strong> A recovery key only serves its purpose if it's kept somewhere "outside" this program.</li>
+<li><strong>Never share your master password or recovery key with anyone you don't fully trust.</strong> Anyone who knows both can view everything you've stored.</li>
+</ul>
+
+<h2 id="trouble">If Something Goes Wrong</h2>
+<table>
+<tr><th>Situation</th><th>What to try</th></tr>
+<tr><td>A blue warning screen appears during installation</td><td>This is normal — click "More info" then "Run anyway," in that order. (See Step 2)</td></tr>
+<tr><td>I forgot my password</td><td>Choose "Log in with recovery key" on the unlock screen, and enter the recovery key you saved earlier.</td></tr>
+<tr><td>I don't know where my recovery key is</td><td>Unfortunately, there's no way to recover your data. You'll need to reinstall and start fresh.</td></tr>
+<tr><td>The program won't launch</td><td>Try restarting your computer. If that doesn't help, make sure Windows is fully updated.</td></tr>
+<tr><td>Something else</td><td>Check the <a href="./README.en.html#troubleshooting">Troubleshooting table in README.en.html</a>, or leave a report on GitHub Issues.</td></tr>
+</table>
+
+<h2 id="faq">Frequently Asked Questions</h2>
+<p><strong>Q. Can I use it without internet?</strong><br>A. Yes. You only need internet to download it — actual use afterward requires no internet connection.</p>
+<p><strong>Q. Is my information sent anywhere?</strong><br>A. No. This program is built so that it never sends anything over the internet. All your information stays only on your own computer.</p>
+<p><strong>Q. Can I use it on my phone?</strong><br>A. Not yet — it's currently Windows-computer only.</p>
+<p><strong>Q. How do I move my data to another computer?</strong><br>A. Use "Settings → Backup" inside the program to create a backup file, then use "Settings → Restore" on the other computer to load it. See <a href="./README.en.html#usage">README.en.html</a> for details.</p>
+
+<h2 id="cost">Cost and Terms of Use</h2>
+<p>This program is <strong>free</strong>, and you may use it freely — personally or at work. The exact terms of use (Apache License 2.0) are detailed in <a href="./README.en.html#legal">README.en.html's Legal section</a> and in the repository's <code>LICENSE</code> file. This guide focuses on usage instructions, not the legal fine print.</p>
+
+<div class="footer">
+Want more detail? Check out <a href="./README.en.html">README.en.html</a>.<br>
+Something wrong? Leave a report on GitHub Issues.
+</div>
+
+</div>
+</body>
+</html>

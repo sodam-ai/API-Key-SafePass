@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Key SafePass — README</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-alt: #f6f7f9; --fg: #1a1d23; --fg-muted: #57606a;
+    --border: #d8dee4; --accent: #2f5fd6; --accent-bg: #eef2ff;
+    --code-bg: #f0f2f5; --warn-bg: #fff8e6; --warn-border: #e8c766;
+    --table-head: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14171c; --bg-alt: #1b1f26; --fg: #e6e9ef; --fg-muted: #9aa4b2;
+      --border: #2c333d; --accent: #7fa2ff; --accent-bg: #1c2436;
+      --code-bg: #1e232b; --warn-bg: #2a2410; --warn-border: #6b5a1a; --table-head: #1e232b; }
+  }
+  :root[data-theme="dark"] { --bg: #14171c; --bg-alt: #1b1f26; --fg: #e6e9ef; --fg-muted: #9aa4b2;
+      --border: #2c333d; --accent: #7fa2ff; --accent-bg: #1c2436;
+      --code-bg: #1e232b; --warn-bg: #2a2410; --warn-border: #6b5a1a; --table-head: #1e232b; }
+  :root[data-theme="light"] { --bg: #ffffff; --bg-alt: #f6f7f9; --fg: #1a1d23; --fg-muted: #57606a;
+      --border: #d8dee4; --accent: #2f5fd6; --accent-bg: #eef2ff;
+      --code-bg: #f0f2f5; --warn-bg: #fff8e6; --warn-border: #e8c766; --table-head: #eef1f5; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family: -apple-system, "Segoe UI", sans-serif; line-height:1.7; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+  h1 { font-size: 2rem; margin: 0 0 .3rem; }
+  h2 { font-size: 1.4rem; margin: 2.6rem 0 1rem; padding-bottom:.5rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.1rem; margin: 1.6rem 0 .6rem; color: var(--accent); }
+  p { margin: .8rem 0; }
+  a { color: var(--accent); }
+  .tagline { color: var(--fg-muted); font-size: 1.05rem; margin-bottom: 1rem; }
+  .badges { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom: 1rem; }
+  .badge { font-size:.8rem; padding:.25rem .6rem; border-radius:4px; background:var(--accent-bg); color:var(--accent); border:1px solid var(--border); }
+  .langbar { background:var(--bg-alt); border:1px solid var(--border); border-radius:8px; padding:.8rem 1rem; margin: 1rem 0 2rem; font-size:.95rem; }
+  table { border-collapse: collapse; width:100%; margin: 1rem 0; overflow-x:auto; display:block; }
+  th, td { border:1px solid var(--border); padding:.55rem .8rem; text-align:left; font-size:.92rem; vertical-align:top; }
+  th { background:var(--table-head); }
+  code { background:var(--code-bg); padding:.15rem .4rem; border-radius:4px; font-size:.88em; font-family: "Cascadia Code", Consolas, monospace; }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; overflow-x:auto; }
+  pre code { background:none; padding:0; }
+  blockquote { margin: 1rem 0; padding: .8rem 1.1rem; background: var(--warn-bg); border-left: 4px solid var(--warn-border); border-radius: 0 8px 8px 0; }
+  blockquote p { margin:.3rem 0; }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin: .35rem 0; }
+  hr { border:none; border-top:1px solid var(--border); margin: 2.5rem 0; }
+  details { background: var(--bg-alt); border:1px solid var(--border); border-radius:8px; padding: .8rem 1.2rem; margin: 1rem 0; }
+  summary { cursor:pointer; font-weight:600; }
+  details[open] summary { margin-bottom:.6rem; }
+  nav.toc { background: var(--bg-alt); border:1px solid var(--border); border-radius:10px; padding:1rem 1.5rem; }
+  nav.toc ol { margin:.4rem 0; }
+  .footer { text-align:center; color:var(--fg-muted); margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:.9rem; }
+  .diagram { font-family: Consolas, monospace; font-size: .82rem; white-space: pre; overflow-x:auto; background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:1rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>API Key SafePass</h1>
+<p class="tagline">Your API keys, encrypted and kept safe — right on your own PC. No server, no cloud, no network transmission.</p>
+<div class="badges">
+  <span class="badge">License: Apache 2.0</span>
+  <span class="badge">Platform: Windows</span>
+</div>
+<div class="langbar">
+  <strong>Language</strong>: English (this document) · <a href="./README.html">한국어</a><br>
+  <strong>Need a beginner-friendly walkthrough?</strong> → <a href="./GUIDE.en.html">GUIDE.en.html</a> (click-by-click instructions for people new to computers)
+</div>
+
+<h2 id="intro">What is this?</h2>
+<p>If you use AI services like ChatGPT, Claude, Gemini, or any cloud platform, you receive "API keys" — long, password-like strings. Many people end up scattering these across notepad files, self-sent chat messages, and open browser tabs.</p>
+<p><strong>API Key SafePass</strong> keeps all of these in a single encrypted vault <strong>stored entirely on your own computer</strong>. You only need to remember one master password; the actual key values are locked inside the file using AES-256-GCM encryption. <strong>No coding knowledge is required to use it.</strong></p>
+
+<h2>Table of Contents</h2>
+<nav class="toc">
+<ol>
+<li><a href="#prereq">Prerequisites</a></li>
+<li><a href="#reqprog">Required Software</a></li>
+<li><a href="#download">Download</a></li>
+<li><a href="#install">Installation</a></li>
+<li><a href="#quickstart">Quick Start</a></li>
+<li><a href="#run">Running the App</a></li>
+<li><a href="#usage">Usage / How It Works</a></li>
+<li><a href="#commands">Commands</a></li>
+<li><a href="#changelog">Changelog</a></li>
+<li><a href="#files">File / Document Locations</a></li>
+<li><a href="#workflow">Workflow</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#security">Security / Data Flow</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#faq">FAQ</a></li>
+<li><a href="#legal">Legal / Copyright / License / Commercial Use</a></li>
+</ol>
+</nav>
+
+<hr>
+<h2 id="prereq">Prerequisites</h2>
+<p>For general users (installing the pre-built app), you only need this:</p>
+<table>
+<tr><th>Item</th><th>Requirement</th></tr>
+<tr><td>Operating System</td><td><strong>Windows 10 or Windows 11 (64-bit)</strong> — only Windows installers are currently distributed. macOS/Linux are not yet officially released.</td></tr>
+<tr><td>Free disk space</td><td>About 50MB or more (the installer itself is 1.8–4.6MB; extra space is for app data)</td></tr>
+<tr><td>Administrator rights</td><td>May be required for <code>setup.exe</code>/<code>.msi</code>. The portable <code>.exe</code> runs without admin rights.</td></tr>
+<tr><td>Internet connection</td><td><strong>Only needed to download the installer.</strong> Once installed, the app requires no internet at all (fully local app).</td></tr>
+</table>
+<blockquote><p>Developers who want to build from source need the additional Required Software below.</p></blockquote>
+
+<h2 id="reqprog">Required Software</h2>
+<h3>General users (using the pre-built installer)</h3>
+<p><strong>Nothing extra to install.</strong> Any Windows 10/11 machine can install and run it directly.</p>
+<h3>Developers (building from source)</h3>
+<p>This project's newest features implemented this session (account-field copy buttons, an improved <code>.env</code> importer, a recovery-key regeneration screen, and backup/restore) have <strong>not yet been published as an official release</strong>. To use them today, you need to build from source, which requires:</p>
+<table>
+<tr><th>Program</th><th>Minimum version</th><th>Purpose</th><th>Download</th></tr>
+<tr><td>Node.js</td><td>18+ (LTS recommended)</td><td>Building the frontend (UI)</td><td>nodejs.org</td></tr>
+<tr><td>Rust (rustup)</td><td>Latest stable</td><td>Building the backend (encryption/DB logic)</td><td>rust-lang.org</td></tr>
+<tr><td>Microsoft C++ Build Tools</td><td>—</td><td>Required to compile Rust on Windows</td><td>Visual Studio Installer → "Desktop development with C++" workload</td></tr>
+<tr><td>Git</td><td>Any version</td><td>Cloning the source code</td><td>git-scm.com</td></tr>
+</table>
+<blockquote><p>WebView2 ships built-in with Windows 11 and is included in most up-to-date Windows 10 installs. If it's missing, the app will prompt you to install it automatically.</p></blockquote>
+
+<h2 id="download">Download</h2>
+<h3>General users — download the installer</h3>
+<ol>
+<li>Open your web browser and go to: <strong>https://github.com/sodam-ai/API-Key-SafePass/releases</strong></li>
+<li>Click the topmost release, <code>v0.1.0</code> (marked "Latest").</li>
+<li>Expand the "Assets" section and pick one of the three files below.</li>
+</ol>
+<table>
+<tr><th>File</th><th>Type</th><th>Choose this when...</th></tr>
+<tr><td><code>API.Key.SafePass_0.1.0_x64-setup.exe</code></td><td>Installer (NSIS) — <strong>recommended</strong></td><td>Best for most users. Registers cleanly in the Start Menu and uninstalls cleanly.</td></tr>
+<tr><td><code>API.Key.SafePass_0.1.0_x64_en-US.msi</code></td><td>Installer (MSI)</td><td>For workplace/organization computers that only allow MSI installers.</td></tr>
+<tr><td><code>api-key-vault.exe</code></td><td>Portable (no installation needed)</td><td>If you lack admin rights, or want to carry it on a USB drive.</td></tr>
+</table>
+<blockquote><p><strong>The currently published v0.1.0 release does not include this session's newest features</strong> — account-field copy buttons, backup/restore, or the recovery-key regeneration screen. To use these now, you must build from source. See Changelog for the exact feature list included in v0.1.0.</p></blockquote>
+<h3>Developers — clone the source</h3>
+<pre><code>git clone https://github.com/sodam-ai/API-Key-SafePass.git
+cd API-Key-SafePass</code></pre>
+
+<h2 id="install">Installation</h2>
+<h3><code>setup.exe</code> (NSIS installer, recommended)</h3>
+<ol>
+<li>Double-click the downloaded <code>API.Key.SafePass_0.1.0_x64-setup.exe</code>.</li>
+<li><strong>You may see a "Windows protected your PC" SmartScreen warning.</strong> This app is an early build that has not yet purchased a code-signing certificate (a paid annual service), so Windows flags it as coming from an "unknown publisher." It is not malware — the source code is fully open (Apache License 2.0) and anyone can inspect it.
+  <ul><li>Click "More info". A "Run anyway" button appears below — click it to continue installation.</li></ul>
+</li>
+<li>If asked to choose an install location, the default is fine — just keep clicking "Next."</li>
+<li>Once installation finishes, "API Key SafePass" is registered in the Start Menu.</li>
+</ol>
+<h3><code>.msi</code> (MSI installer)</h3>
+<ol>
+<li>Double-click the downloaded <code>API.Key.SafePass_0.1.0_x64_en-US.msi</code>.</li>
+<li>Follow the wizard: "Next" → "Install" → "Finish".</li>
+<li>If SmartScreen appears, handle it the same way as described for <code>setup.exe</code> above.</li>
+</ol>
+<h3><code>api-key-vault.exe</code> (portable, no installation)</h3>
+<ol>
+<li>Place the downloaded <code>api-key-vault.exe</code> in any folder you like (Desktop, a USB drive, etc.).</li>
+<li>Double-click to run it immediately — no install step.</li>
+<li>This method does not register in the Start Menu, so you'll need to double-click the same file again next time.</li>
+</ol>
+<h3>Uninstalling</h3>
+<ul>
+<li>If installed via <code>setup.exe</code>/<code>.msi</code>: Windows Settings → Apps → search "API Key SafePass" → Uninstall.</li>
+<li>Portable <code>.exe</code>: simply move the file to the Recycle Bin.</li>
+<li><strong>Note</strong>: Uninstalling the app does <strong>not</strong> automatically delete your saved key data (<code>vault.db</code>). To remove it completely, you must manually delete the data folder described in File / Document Locations.</li>
+</ul>
+
+<h2 id="quickstart">Quick Start</h2>
+<p>Once installed, five steps are all you need.</p>
+<ol>
+<li><strong>Launch the app</strong> — click "API Key SafePass" from the Start Menu (or desktop).</li>
+<li><strong>Set your master password</strong> — on first launch you'll be asked to create a master password. Choose one you won't forget.</li>
+<li><strong>Save your recovery key</strong> — right after setting the password, a "recovery key" string appears once. <strong>This screen cannot be shown again</strong>, so screenshot it or write it down somewhere safe.</li>
+<li><strong>Create a project</strong> — click the "+" on the left sidebar to create a project (e.g., "Work," "Personal Projects").</li>
+<li><strong>Add your first key</strong> — click "+ Add Key," enter a name and the actual key value, and save.</li>
+</ol>
+<p>From here on, press <code>Ctrl+K</code> any time to search your saved keys.</p>
+
+<h2 id="run">Running the App</h2>
+<h3>Using the installer (general users)</h3>
+<p>Double-click the Start Menu or desktop shortcut. No extra setup is needed.</p>
+<h3>From source (developers, development mode)</h3>
+<p>Requires all items in Required Software to be installed first.</p>
+<pre><code># 1. Move into the cloned repository folder
+cd API-Key-SafePass
+
+# 2. Install frontend dependencies (first time only, takes a few minutes)
+npm install
+
+# 3. Run in development mode (frontend + Rust backend together; a window opens automatically)
+npm run tauri dev</code></pre>
+<ul>
+<li>The first run may take 1–5 minutes while Rust dependencies compile (depending on your machine). Subsequent runs are much faster.</li>
+<li>Editing frontend code hot-reloads the window automatically. Editing Rust code (in <code>src-tauri/</code>) triggers a recompile and restarts the app.</li>
+</ul>
+<h3>Building an installer from source (distribution build)</h3>
+<pre><code>npm run tauri build</code></pre>
+<p>After the build finishes, you'll find a portable <code>.exe</code> and <code>nsis/</code>/<code>msi/</code> installer folders inside <code>src-tauri/target/release/bundle/</code>.</p>
+
+<h2 id="usage">Usage / How It Works</h2>
+<h3>First-launch flow</h3>
+<ol>
+<li><strong>Unlock screen</strong> — enter your master password. On first launch, you'll set a new one instead. Five consecutive wrong attempts triggers a temporary lockout (brute-force protection).</li>
+<li><strong>Dashboard</strong> — shows how many keys you have, recently used keys, and keys nearing expiration at a glance.</li>
+<li><strong>Organize by project/tag</strong> — the left sidebar lets you group keys by project or by AI provider (platform).</li>
+</ol>
+<h3>Searching and copying keys</h3>
+<ul>
+<li>Press <code>Ctrl+K</code>, or type into the search bar at the top — results appear instantly.</li>
+<li>Korean initial-consonant search is supported (e.g., typing "ㅇㅍㅇ" finds "OpenAI").</li>
+<li>Click the copy icon next to a key to copy it to the clipboard; it's automatically cleared after a configurable delay (30 seconds by default).</li>
+</ul>
+<h3>Adding / editing keys</h3>
+<ul>
+<li>Click the "+" button in the bottom-right corner (or "Add Key" inside a project).</li>
+<li>Enter a name, the actual key value, a provider (choose from 100+ presets like OpenAI/Claude/Gemini, or enter your own), notes, expiration date, and reference URLs.</li>
+<li>You can also store <strong>account fields</strong> (ID/password pairs) alongside a key, each with its own one-click copy button.</li>
+</ul>
+<h3><code>.env</code> export / import</h3>
+<ul>
+<li><strong>Export</strong>: select a project, then click ".env" to save that project's keys as a <code>NAME=value</code> formatted <code>.env</code> file.</li>
+<li><strong>Import</strong>: click "Import" and select an existing <code>.env</code> file to register all its keys at once. Values wrapped in double or single quotes (<code>KEY="value"</code>) are automatically unwrapped before saving.</li>
+</ul>
+<h3>Backup · Restore</h3>
+<ul>
+<li><strong>Settings → Backup · Restore → "Back Up Now"</strong> copies your current vault file (already encrypted) to a location you choose.</li>
+<li><strong>"Restore from Backup"</strong> lets you select a previous backup, verify your identity with your current password, and "stage" a restore. The actual swap only happens <strong>the next time you fully quit and relaunch the app</strong> (a deliberate safety design — see Security / Data Flow for details).</li>
+<li>A staged restore can be cancelled from the Settings screen any time before you restart the app.</li>
+</ul>
+<h3>Regenerating your recovery key</h3>
+<ul><li>Settings → "Regenerate Recovery Key" → enter your current password → a new recovery key is displayed. Once regenerated, the previous recovery key stops working immediately.</li></ul>
+<h3>Locking</h3>
+<ul>
+<li>Press <code>Ctrl+L</code> or click the lock button on the left to lock instantly.</li>
+<li>The app also auto-locks after a period of inactivity (configurable in Settings; set to 0 to disable).</li>
+<li>If the window loses focus (covered by another window), the screen blurs after a short delay to prevent shoulder-surfing.</li>
+</ul>
+
+<h2 id="commands">Commands</h2>
+<h3>npm scripts (frontend, from <code>package.json</code>)</h3>
+<table>
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>npm run dev</code></td><td>Runs only the Vite dev server (UI preview in a browser, no Rust backend)</td></tr>
+<tr><td><code>npm run build</code></td><td>Type-checks (<code>tsc</code>) then produces a production build (<code>dist/</code> folder)</td></tr>
+<tr><td><code>npm run preview</code></td><td>Previews the production build</td></tr>
+<tr><td><code>npm run tauri &lt;subcommand&gt;</code></td><td>Invokes the Tauri CLI directly (<code>npm run tauri dev</code>, <code>npm run tauri build</code>, etc.)</td></tr>
+</table>
+<h3>Rust/Cargo commands (backend, run inside <code>src-tauri/</code>)</h3>
+<table>
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>cargo test</code></td><td>Runs all Rust unit tests</td></tr>
+<tr><td><code>cargo build</code></td><td>Builds the Rust backend only (debug mode)</td></tr>
+<tr><td><code>cargo clippy</code></td><td>Runs Rust's static linter</td></tr>
+</table>
+<h3>In-app keyboard shortcuts</h3>
+<table>
+<tr><th>Shortcut</th><th>Action</th></tr>
+<tr><td><code>Ctrl + K</code></td><td>Open search</td></tr>
+<tr><td><code>Ctrl + L</code></td><td>Lock instantly</td></tr>
+<tr><td><code>Esc</code></td><td>Close search</td></tr>
+</table>
+
+<h2 id="changelog">Changelog</h2>
+<details>
+<summary>v0.1.0 (2026-03-21) — Officially released, downloadable · click to expand</summary>
+<ul>
+<li>AES-256-GCM encrypted key storage</li>
+<li>Master password + recovery-key login</li>
+<li>100+ AI/service provider presets (OpenAI, Claude, Gemini, etc.)</li>
+<li>Korean initial-consonant search (e.g., <code>ㅇㅍ</code> → OpenAI)</li>
+<li>Auto-detects which provider a pasted key belongs to</li>
+<li><code>.env</code> file export / import</li>
+<li>User-configurable auto-lock, clipboard auto-clear, and window blur timing</li>
+<li>Screenshot prevention, DevTools blocking</li>
+<li>Brute-force login protection</li>
+<li>Support for multiple reference URLs per key</li>
+</ul>
+</details>
+<details>
+<summary>Unreleased (source build only) — most recent work · click to expand</summary>
+<p>The following features are implemented and tested in code, but <strong>have not yet been published as a new GitHub release.</strong> To use them now, you must build from source.</p>
+<ul>
+<li>One-click copy buttons for account fields (ID/password)</li>
+<li><code>.env</code> import bug fix: correctly handles quote-wrapped values, and wraps the import in a transaction so a partial failure doesn't leave partial data committed</li>
+<li>New recovery-key regeneration screen</li>
+<li>Backup · restore feature (a two-stage verification design that only applies safely at app restart)</li>
+</ul>
+</details>
+
+<h2 id="files">File / Document Locations</h2>
+<h3>Where is my data stored?</h3>
+<p>Since this app uses no server or cloud, all your data lives <strong>only in this folder on your own computer</strong>:</p>
+<pre><code>C:\Users\&lt;your-username&gt;\AppData\Roaming\com.apikeyvault.app\vault.db</code></pre>
+<ul>
+<li>A single <code>vault.db</code> file holds all your projects, keys, tags, and settings.</li>
+<li>The file itself is already encrypted, so opening it directly will not show plain text.</li>
+<li><code>AppData</code> is a hidden folder by default. Paste the path above directly into File Explorer's address bar to jump there.</li>
+</ul>
+<h3>Documents within the project (source layout)</h3>
+<table>
+<tr><th>Document</th><th>Location</th><th>Contents</th></tr>
+<tr><td>This document</td><td><code>README.md</code></td><td>Full project overview (Korean, primary)</td></tr>
+<tr><td>This document</td><td><code>README.en.md</code></td><td>English translation (this file)</td></tr>
+<tr><td>Beginner guide</td><td><code>GUIDE.md</code> / <code>GUIDE.en.md</code></td><td>Click-by-click install/usage guide for people new to computers</td></tr>
+<tr><td>Testing guide</td><td><code>TESTING_GUIDE.ko.md</code></td><td>Detailed test procedures used by developers to verify features</td></tr>
+<tr><td>Work checkpoint</td><td><code>CHECKPOINT.md</code></td><td>Tracks upcoming work and its risks</td></tr>
+<tr><td>Planning docs</td><td><code>.PRD/</code> folder</td><td>Design/planning documents explaining why and how this app was built</td></tr>
+<tr><td>License</td><td><code>LICENSE</code></td><td>Full Apache License 2.0 text</td></tr>
+</table>
+
+<h2 id="workflow">Workflow</h2>
+<h3>A general user's daily flow</h3>
+<div class="diagram">Launch app → enter master password (unlock)
+   → Ctrl+K to search for the key you need → click copy → paste it wherever needed
+   → (when done) Ctrl+L to lock, or let auto-lock handle it after inactivity</div>
+<h3>Starting a new project</h3>
+<div class="diagram">Create project → register keys (or import them all at once via .env)
+   → search and copy as needed while working
+   → export to .env when done, to place in the actual project folder</div>
+<h3>A developer's contribution flow</h3>
+<div class="diagram">git clone → npm install → npm run tauri dev (verify dev mode)
+   → edit code → verify with cargo test / npm run build
+   → git commit → open a Pull Request</div>
+
+<h2 id="architecture">Architecture</h2>
+<p>The app is split into three layers that communicate only through defined channels.</p>
+<div class="diagram">┌─────────────────────────────────────────────┐
+│  Frontend                                     │
+│  React 18 + TypeScript + Tailwind CSS         │
+│  src/ folder                                  │
+└───────────────────┬───────────────────────────┘
+                     │ Tauri IPC (invoke() calls)
+                     │ — looks like a browser, but only
+                     │   talks to the Rust backend below,
+                     │   never the outside internet
+┌───────────────────▼───────────────────────────┐
+│  Backend                                       │
+│  Rust                                          │
+│  src-tauri/src/                                │
+│  ├─ commands/  (33 functions handling          │
+│  │              frontend requests)              │
+│  ├─ crypto/    (AES-256-GCM encrypt/decrypt,    │
+│  │              Argon2id password hashing)      │
+│  ├─ db/        (SQLite queries)                 │
+│  └─ models/    (data structure definitions)     │
+└───────────────────┬───────────────────────────┘
+                     │ rusqlite (SQLite driver)
+┌───────────────────▼───────────────────────────┐
+│  Storage                                       │
+│  A single SQLite file (vault.db)               │
+│  Exists only on your computer — no server       │
+└─────────────────────────────────────────────┘</div>
+<ul>
+<li>The frontend (React) never touches the SQLite file directly. All data flows exclusively through Rust "commands."</li>
+<li>The app's security policy (<code>tauri.conf.json</code>) restricts <code>connect-src</code> to the local <code>ipc:</code> channel only, so even a bug in the code cannot cause data to leave over the internet.</li>
+</ul>
+<h3>Database schema (7 SQLite tables)</h3>
+<table>
+<tr><th>Table</th><th>Purpose</th></tr>
+<tr><td><code>app_settings</code></td><td>Master password hash, user preferences, etc.</td></tr>
+<tr><td><code>projects</code></td><td>List of projects (folders)</td></tr>
+<tr><td><code>api_keys</code></td><td>Encrypted API key values and metadata</td></tr>
+<tr><td><code>tags</code></td><td>List of tags</td></tr>
+<tr><td><code>api_key_tags</code></td><td>Join table linking keys to tags</td></tr>
+<tr><td><code>usage_logs</code></td><td>Recent usage history (for the dashboard)</td></tr>
+<tr><td><code>backup_history</code></td><td>Record of backups that were run</td></tr>
+</table>
+
+<h2 id="security">Security / Data Flow</h2>
+<blockquote><p>Security is this app's core purpose. We recommend understanding the following before use.</p></blockquote>
+<h3>1. Your master password is never stored</h3>
+<p>The raw master password is never stored anywhere. Instead, it's transformed irreversibly using <strong>Argon2id</strong> hashing, and stored only in that form; each login re-hashes your input the same way and compares. Argon2id won the 2015 Password Hashing Competition and is designed to resist brute-force attacks.</p>
+<h3>2. Actual key values are encrypted with AES-256-GCM</h3>
+<p>Registered API key values are never stored as plain text. They are encrypted with <strong>AES-256-GCM</strong>, using an encryption key derived from your master password. This derived key exists in memory only while the app is unlocked and is discarded when you lock it.</p>
+<h3>3. Nothing is transmitted over the internet</h3>
+<p><code>tauri.conf.json</code>'s security policy (CSP) fixes <code>connect-src</code> to <code>ipc: http://ipc.localhost</code>, structurally blocking the app from making any outbound network request to an external server. This app has no server.</p>
+<h3>4. Clipboard auto-clear</h3>
+<p>When you copy a key, it briefly sits on your clipboard. After a configurable delay (30 seconds by default), it is automatically cleared — unless you've since copied something else yourself, in which case your newer clipboard content is left untouched.</p>
+<h3>5. Screen blur</h3>
+<p>If the app window loses focus or is covered by another window, its contents blur after a short delay, to prevent someone glancing over your shoulder from seeing sensitive data.</p>
+<h3>6. Backup files remain encrypted</h3>
+<p>A backup is simply a copy of the already-encrypted <code>vault.db</code> file. No extra encryption step is needed, and a backup file alone cannot be read without your master password.</p>
+<h3>7. Restoring goes through two safety checks</h3>
+<ol>
+<li><strong>Staging step</strong>: before restoring, your current password is re-verified. The chosen backup file is checked to confirm it's a genuine SQLite database (by inspecting the first 16 bytes), and it's written to a temporary file (<code>vault.db.pending-restore</code>) — the live <code>vault.db</code> is never touched at this point.</li>
+<li><strong>Apply step</strong>: the swap only happens the next time you fully quit and relaunch the app. At that moment, the pending file is re-validated to ensure it wasn't corrupted; only then is it swapped in. Your previous <code>vault.db</code> is not deleted — it's kept alongside as <code>vault.db.bak-&lt;timestamp&gt;</code>.</li>
+<li>In short, no swap ever happens while a database connection is open, and an invalid restore attempt can never destroy your existing data.</li>
+</ol>
+<h3>8. What if I lose my master password?</h3>
+<p>Your <strong>recovery key</strong> is the only way back in. It is shown once, at initial setup, and is never displayed again afterward. If you lose <strong>both</strong> your master password and your recovery key, there is no way to recover your data — this app deliberately has no backdoor or server-side reset mechanism, because that absence is exactly what makes it secure.</p>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<tr><th>Symptom</th><th>Cause</th><th>What to do</th></tr>
+<tr><td>"Windows protected your PC" warning during install</td><td>No code-signing certificate purchased yet (early build)</td><td>Click "More info" → "Run anyway." The source code is public and independently verifiable.</td></tr>
+<tr><td>Forgot the master password</td><td>—</td><td>Use "Log in with recovery key" on the unlock screen. Without a recovery key, data recovery is impossible.</td></tr>
+<tr><td>Entered the wrong password 5+ times</td><td>Brute-force protection triggered</td><td>Wait a while, then try again.</td></tr>
+<tr><td>App won't launch</td><td>Possible WebView2 runtime issue</td><td>Keep Windows fully updated, or install the Microsoft Edge WebView2 runtime.</td></tr>
+<tr><td>Values look wrong after importing a <code>.env</code> file</td><td>A known bug in the official v0.1.0 build (quote handling)</td><td>Already fixed in code but not yet in an official release. Build from source to get the fix.</td></tr>
+<tr><td>Data looks off after backup/restore</td><td>Restores only apply after a full app restart, by design</td><td>Fully quit and relaunch the app for the restore to take effect. You can roll back using the auto-created <code>vault.db.bak-&lt;timestamp&gt;</code> file.</td></tr>
+<tr><td>Port conflict error running dev mode (<code>npm run tauri dev</code>)</td><td>Another program is using the same port (7845)</td><td>Close the conflicting program, or change the port in <code>vite.config.ts</code>.</td></tr>
+<tr><td>Linker error running <code>cargo build</code> (Windows)</td><td>Microsoft C++ Build Tools not installed</td><td>Install the C++ Build Tools listed in Required Software.</td></tr>
+<tr><td>Something else went wrong</td><td>—</td><td>File an issue on GitHub Issues with the symptom, reproduction steps, and your Windows version.</td></tr>
+</table>
+
+<h2 id="faq">FAQ</h2>
+<p><strong>Q. What happens if I lose both my master password and recovery key?</strong><br>A. There is no way to recover your data. This app has no backdoor that even the developers could use to bypass it. Be sure to store your recovery key somewhere safe as soon as it's shown to you.</p>
+<p><strong>Q. Do I need an internet connection?</strong><br>A. Only to download the installer. Once installed, actual use (saving, searching, copying keys) requires no internet at all.</p>
+<p><strong>Q. Does it sync automatically across computers?</strong><br>A. No. This app deliberately has no cloud sync feature (staying local-only is a core design value). To use the same data on multiple computers, you must manually move a file using Backup · Restore.</p>
+<p><strong>Q. Is it free?</strong><br>A. Yes, it's free, and the source code is public under Apache License 2.0.</p>
+<p><strong>Q. Can I use it at work, or for commercial purposes?</strong><br>A. Yes. Apache License 2.0 broadly permits commercial use, modification, and redistribution. Please review the Legal / Copyright / License / Commercial Use section and the full <code>LICENSE</code> file for your legal obligations.</p>
+<p><strong>Q. Is there a mobile app or browser extension?</strong><br>A. No — this was a deliberate decision to avoid expanding the attack surface. It is desktop-only.</p>
+<p><strong>Q. Does it work on macOS or Linux?</strong><br>A. Only Windows installers are officially released right now. While Tauri's architecture technically supports macOS/Linux builds, this project has not yet built, tested, or published them.</p>
+<p><strong>Q. How can I trust that this app doesn't send my keys anywhere?</strong><br>A. The entire source code is public, so anyone can verify it. In particular, the <code>connect-src</code> setting in <code>src-tauri/tauri.conf.json</code> is restricted to the local <code>ipc:</code> channel only, which structurally prevents the app from making outbound network requests.</p>
+<p><strong>Q. Can I modify the source and sell it under my own name?</strong><br>A. Apache License 2.0 permits this, provided you retain the original copyright notice and license text, and clearly mark any files you've modified. Please check the exact terms in the <code>LICENSE</code> file. This answer is informational only and is not a legal opinion.</p>
+
+<h2 id="legal">Legal / Copyright / License / Commercial Use</h2>
+<blockquote><p>The following is a plain-language summary of this software's license terms, not legal advice. If you need a legal determination, please consult a qualified attorney.</p></blockquote>
+<ul>
+<li><strong>License</strong>: <a href="./LICENSE">Apache License, Version 2.0</a></li>
+<li><strong>Copyright holder</strong>: Copyright 2026 SoDam AI Studio</li>
+<li><strong>Authoritative text</strong>: the <a href="./LICENSE"><code>LICENSE</code></a> file at the root of this repository (the official text; if this summary ever appears to conflict with it, the <code>LICENSE</code> file governs)</li>
+</ul>
+<h3>What's permitted</h3>
+<ul>
+<li>Commercial use (in your workplace, or bundled into a paid service)</li>
+<li>Modification and creation of Derivative Works</li>
+<li>Redistribution (unmodified or modified)</li>
+<li>A patent license grant (Apache 2.0 Section 3, covering contributors' patent claims)</li>
+</ul>
+<h3>What you must do (Apache 2.0 Section 4 summary)</h3>
+<ul>
+<li>Include a copy of the license (<code>LICENSE</code> file) with any redistribution.</li>
+<li>Clearly mark any files you've modified.</li>
+<li>Preserve the original copyright, patent, trademark, and attribution notices.</li>
+</ul>
+<h3>Warranty disclaimer and liability limitation (Apache 2.0 Sections 7 &amp; 8 summary)</h3>
+<p>This software is provided <strong>"AS IS," without warranties of any kind</strong>, express or implied, including without limitation any implied warranties of merchantability, fitness for a particular purpose, or non-infringement. The copyright holder and contributors accept no liability for any damages (direct, indirect, special, or incidental) arising from the use or inability to use this software. Although this is a <strong>security-focused tool</strong>, the copyright holder accepts no liability, to the maximum extent permitted by law, for data loss, key exposure, or loss of access due to a forgotten master password or recovery key. See Sections 7 and 8 of the <code>LICENSE</code> file for the exact legal terms.</p>
+<h3>Trademark</h3>
+<p>This license does not grant permission to use the copyright holder's trade names, trademarks, service marks, or product names (Apache 2.0 Section 6). Using the names "API Key SafePass" or "SoDam AI Studio" to promote a separate product requires separate permission.</p>
+<h3>Third-party components</h3>
+<p>This project uses the following open-source libraries. Each carries its own license, independent of this project's Apache License 2.0 (most are MIT or Apache 2.0-family and are compatible).</p>
+<table>
+<tr><th>Library</th><th>Purpose</th></tr>
+<tr><td>Tauri v2</td><td>Desktop app framework</td></tr>
+<tr><td>React, React DOM</td><td>UI</td></tr>
+<tr><td>rusqlite</td><td>SQLite database access</td></tr>
+<tr><td>aes-gcm, argon2</td><td>Encryption and password hashing</td></tr>
+<tr><td>Tailwind CSS</td><td>Styling</td></tr>
+</table>
+<p>Exact license terms for each library can be verified directly on npm/crates.io, based on the versions pinned in <code>package.json</code> (frontend) and <code>src-tauri/Cargo.toml</code> (backend).</p>
+
+<div class="footer">
+Found a bug or have a question? Open an issue at GitHub Issues.<br>
+Made with care by <strong>SoDam AI Studio</strong> · Licensed under <a href="./LICENSE">Apache License 2.0</a>
+</div>
+
+</div>
+</body>
+</html>
