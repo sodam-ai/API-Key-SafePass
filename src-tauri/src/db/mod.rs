@@ -74,6 +74,7 @@ pub fn init_db(conn: &Connection) -> SqlResult<()> {
     let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN service_url TEXT", []);
     let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN env_var_name TEXT", []);
     let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN reference_urls TEXT", []);
+    let _ = conn.execute("ALTER TABLE api_keys ADD COLUMN encrypted_accounts TEXT", []);
 
     Ok(())
 }
@@ -137,12 +138,25 @@ pub fn delete_project(conn: &Connection, id: &str) -> SqlResult<()> {
 
 const API_KEY_COLS: &str = "id, project_id, name, provider, memo, service_url, env_var_name, expires_at, last_used_at, created_at, updated_at, reference_urls";
 
+/// Single source of truth for the ApiKey column list, with an optional table alias prefix
+/// (e.g. "k." for JOIN queries). Prevents the SELECT/row_to_api_key index drift that caused
+/// a prior search_api_keys bug.
+fn api_key_select_cols(prefix: &str) -> String {
+    let cols: String = API_KEY_COLS
+        .split(", ")
+        .map(|c| format!("{prefix}{c}"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!("{cols}, ({prefix}encrypted_accounts IS NOT NULL AND {prefix}encrypted_accounts != '') AS has_accounts")
+}
+
 fn row_to_api_key(row: &rusqlite::Row) -> rusqlite::Result<ApiKey> {
     Ok(ApiKey {
         id: row.get(0)?, project_id: row.get(1)?, name: row.get(2)?,
         provider: row.get(3)?, memo: row.get(4)?, service_url: row.get(5)?,
         env_var_name: row.get(6)?, expires_at: row.get(7)?, last_used_at: row.get(8)?,
         created_at: row.get(9)?, updated_at: row.get(10)?, reference_urls: row.get(11)?,
+        has_accounts: row.get(12)?,
     })
 }
 
@@ -166,18 +180,18 @@ pub fn create_api_key(conn: &Connection, input: &CreateApiKeyInput, encrypted_va
     for tag_id in &input.tag_ids {
         conn.execute("INSERT OR IGNORE INTO api_key_tags (api_key_id, tag_id) VALUES (?1, ?2)", params![id, tag_id])?;
     }
-    Ok(ApiKey { id, project_id: input.project_id.clone(), name: input.name.clone(), provider: input.provider.clone(), memo: input.memo.clone(), service_url: input.service_url.clone(), env_var_name: input.env_var_name.clone(), expires_at: input.expires_at.clone(), last_used_at: None, reference_urls: input.reference_urls.clone(), created_at: now.clone(), updated_at: now })
+    Ok(ApiKey { id, project_id: input.project_id.clone(), name: input.name.clone(), provider: input.provider.clone(), memo: input.memo.clone(), service_url: input.service_url.clone(), env_var_name: input.env_var_name.clone(), expires_at: input.expires_at.clone(), last_used_at: None, reference_urls: input.reference_urls.clone(), created_at: now.clone(), updated_at: now, has_accounts: false })
 }
 
 pub fn list_api_keys(conn: &Connection, project_id: &str) -> SqlResult<Vec<ApiKeyWithTags>> {
-    let sql = format!("SELECT {} FROM api_keys WHERE project_id = ?1 ORDER BY name", API_KEY_COLS);
+    let sql = format!("SELECT {} FROM api_keys WHERE project_id = ?1 ORDER BY name", api_key_select_cols(""));
     let mut stmt = conn.prepare(&sql)?;
     let keys: Vec<ApiKey> = stmt.query_map(params![project_id], |row| row_to_api_key(row))?.collect::<SqlResult<Vec<_>>>()?;
     attach_tags(conn, keys)
 }
 
 pub fn list_all_api_keys(conn: &Connection) -> SqlResult<Vec<ApiKeyWithTags>> {
-    let sql = format!("SELECT {} FROM api_keys ORDER BY name", API_KEY_COLS);
+    let sql = format!("SELECT {} FROM api_keys ORDER BY name", api_key_select_cols(""));
     let mut stmt = conn.prepare(&sql)?;
     let keys: Vec<ApiKey> = stmt.query_map([], |row| row_to_api_key(row))?.collect::<SqlResult<Vec<_>>>()?;
     attach_tags(conn, keys)
@@ -185,13 +199,26 @@ pub fn list_all_api_keys(conn: &Connection) -> SqlResult<Vec<ApiKeyWithTags>> {
 
 pub fn search_api_keys(conn: &Connection, query: &str) -> SqlResult<Vec<ApiKeyWithTags>> {
     let pattern = format!("%{}%", query);
-    let mut stmt = conn.prepare(
-        "SELECT DISTINCT k.id, k.project_id, k.name, k.provider, k.memo, k.service_url, k.env_var_name, k.expires_at, k.last_used_at, k.created_at, k.updated_at
-         FROM api_keys k LEFT JOIN api_key_tags akt ON k.id = akt.api_key_id LEFT JOIN tags t ON akt.tag_id = t.id
+    let sql = format!(
+        "SELECT DISTINCT {} FROM api_keys k LEFT JOIN api_key_tags akt ON k.id = akt.api_key_id LEFT JOIN tags t ON akt.tag_id = t.id
          WHERE k.name LIKE ?1 OR k.provider LIKE ?1 OR t.name LIKE ?1 OR k.env_var_name LIKE ?1 ORDER BY k.name",
-    )?;
+        api_key_select_cols("k.")
+    );
+    let mut stmt = conn.prepare(&sql)?;
     let keys: Vec<ApiKey> = stmt.query_map(params![pattern], |row| row_to_api_key(row))?.collect::<SqlResult<Vec<_>>>()?;
     attach_tags(conn, keys)
+}
+
+pub fn get_encrypted_accounts(conn: &Connection, key_id: &str) -> SqlResult<Option<String>> {
+    conn.query_row("SELECT encrypted_accounts FROM api_keys WHERE id = ?1", params![key_id], |row| row.get(0))
+}
+
+pub fn set_encrypted_accounts(conn: &Connection, key_id: &str, encrypted_accounts: Option<&str>) -> SqlResult<()> {
+    conn.execute(
+        "UPDATE api_keys SET encrypted_accounts = ?1, updated_at = ?2 WHERE id = ?3",
+        params![encrypted_accounts, chrono::Utc::now().to_rfc3339(), key_id],
+    )?;
+    Ok(())
 }
 
 pub fn get_encrypted_value(conn: &Connection, key_id: &str) -> SqlResult<String> {
@@ -334,10 +361,175 @@ pub fn get_expired_count(conn: &Connection) -> SqlResult<i64> {
 
 // --- Export all for backup ---
 
-pub fn get_all_encrypted_keys(conn: &Connection) -> SqlResult<Vec<(String, String, String, Option<String>, Option<String>, Option<String>, Option<String>)>> {
-    let mut stmt = conn.prepare("SELECT id, name, encrypted_value, provider, memo, service_url, env_var_name FROM api_keys")?;
+/// (id, name, encrypted_value, provider, memo, service_url, env_var_name, encrypted_accounts)
+type EncryptedKeyRow = (String, String, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>);
+
+pub fn get_all_encrypted_keys(conn: &Connection) -> SqlResult<Vec<EncryptedKeyRow>> {
+    let mut stmt = conn.prepare("SELECT id, name, encrypted_value, provider, memo, service_url, env_var_name, encrypted_accounts FROM api_keys")?;
     let rows = stmt.query_map([], |row| {
-        Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?, row.get(6)?))
+        Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?, row.get(6)?, row.get(7)?))
     })?;
     rows.collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        init_db(&conn).unwrap();
+        conn
+    }
+
+    fn make_project(conn: &Connection) -> Project {
+        create_project(conn, &CreateProjectInput { name: "Test Project".into(), description: None, color: None }).unwrap()
+    }
+
+    fn make_key_input(project_id: &str, name: &str) -> CreateApiKeyInput {
+        CreateApiKeyInput {
+            project_id: project_id.to_string(), name: name.to_string(), value: "sk-test-value".into(),
+            provider: Some("OpenAI".into()), memo: None, service_url: None, env_var_name: None,
+            expires_at: None, reference_urls: None, tag_ids: vec![],
+        }
+    }
+
+    #[test]
+    fn create_and_list_api_key_has_accounts_false_by_default() {
+        let conn = setup();
+        let proj = make_project(&conn);
+        let created = create_api_key(&conn, &make_key_input(&proj.id, "OpenAI Key"), "encrypted-blob").unwrap();
+        assert!(!created.has_accounts);
+
+        let listed = list_all_api_keys(&conn).unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].key.name, "OpenAI Key");
+        assert!(!listed[0].key.has_accounts);
+    }
+
+    #[test]
+    fn search_api_keys_finds_match_without_column_error() {
+        // Regression test: search_api_keys previously selected 11 columns while
+        // row_to_api_key read a 12th (reference_urls) index, causing a runtime
+        // error whenever a search actually matched a row.
+        let conn = setup();
+        let proj = make_project(&conn);
+        create_api_key(&conn, &make_key_input(&proj.id, "Anthropic Key"), "encrypted-blob").unwrap();
+
+        let results = search_api_keys(&conn, "Anthropic").unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].key.name, "Anthropic Key");
+    }
+
+    #[test]
+    fn search_api_keys_no_match_returns_empty() {
+        let conn = setup();
+        let proj = make_project(&conn);
+        create_api_key(&conn, &make_key_input(&proj.id, "Anthropic Key"), "encrypted-blob").unwrap();
+
+        let results = search_api_keys(&conn, "NoSuchProvider").unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn accounts_blob_roundtrip_and_has_accounts_flag() {
+        let conn = setup();
+        let proj = make_project(&conn);
+        let created = create_api_key(&conn, &make_key_input(&proj.id, "Key"), "encrypted-blob").unwrap();
+
+        assert_eq!(get_encrypted_accounts(&conn, &created.id).unwrap(), None);
+        assert!(!list_all_api_keys(&conn).unwrap()[0].key.has_accounts);
+
+        set_encrypted_accounts(&conn, &created.id, Some("cipher-text-here")).unwrap();
+        assert_eq!(get_encrypted_accounts(&conn, &created.id).unwrap().as_deref(), Some("cipher-text-here"));
+        assert!(list_all_api_keys(&conn).unwrap()[0].key.has_accounts);
+        // has_accounts must also be correct via the JOIN-based search query, not just the plain list.
+        assert!(search_api_keys(&conn, "Key").unwrap()[0].key.has_accounts);
+    }
+
+    #[test]
+    fn clearing_accounts_resets_has_accounts_flag() {
+        let conn = setup();
+        let proj = make_project(&conn);
+        let created = create_api_key(&conn, &make_key_input(&proj.id, "Key"), "encrypted-blob").unwrap();
+
+        set_encrypted_accounts(&conn, &created.id, Some("cipher-text-here")).unwrap();
+        assert!(list_all_api_keys(&conn).unwrap()[0].key.has_accounts);
+
+        set_encrypted_accounts(&conn, &created.id, None).unwrap();
+        assert!(!list_all_api_keys(&conn).unwrap()[0].key.has_accounts);
+    }
+
+    #[test]
+    fn get_all_encrypted_keys_includes_accounts_column_for_reencryption() {
+        let conn = setup();
+        let proj = make_project(&conn);
+        let created = create_api_key(&conn, &make_key_input(&proj.id, "Key"), "encrypted-blob").unwrap();
+        set_encrypted_accounts(&conn, &created.id, Some("cipher-text-here")).unwrap();
+
+        let all = get_all_encrypted_keys(&conn).unwrap();
+        assert_eq!(all.len(), 1);
+        assert_eq!(all[0].7.as_deref(), Some("cipher-text-here"));
+    }
+
+    /// End-to-end simulation of what commands::change_master_password does to the
+    /// accounts blob: decrypt every key's value + accounts with the OLD derived key,
+    /// re-encrypt with the NEW derived key, persist, then prove the NEW key opens
+    /// everything and the OLD key no longer can. This is the exact scenario flagged
+    /// as an unverified risk (master password change must not strand saved accounts).
+    #[test]
+    fn master_password_change_reencrypts_value_and_accounts_correctly() {
+        let conn = setup();
+        let proj = make_project(&conn);
+
+        let old_salt = crate::crypto::generate_salt();
+        let old_key = crate::crypto::derive_encryption_key("old-master-pw", &old_salt).unwrap();
+        let new_salt = crate::crypto::generate_salt();
+        let new_key = crate::crypto::derive_encryption_key("new-master-pw", &new_salt).unwrap();
+
+        // Key A: has both a main value and an accounts blob (username/password).
+        let value_a = "sk-real-secret-value";
+        let encrypted_a = crate::crypto::encrypt_value(value_a, &old_key).unwrap();
+        let created_a = create_api_key(&conn, &make_key_input(&proj.id, "Key A"), &encrypted_a).unwrap();
+        let accounts_json = r#"[{"label":"메인","username":"me@example.com","password":"super-secret-pw","site_url":"https://example.com","key_value":null,"expires_at":null}]"#;
+        let encrypted_accounts_a = crate::crypto::encrypt_value(accounts_json, &old_key).unwrap();
+        set_encrypted_accounts(&conn, &created_a.id, Some(&encrypted_accounts_a)).unwrap();
+
+        // Key B: has a main value but NO accounts — must not break when accounts is None.
+        let value_b = "sk-other-secret";
+        let encrypted_b = crate::crypto::encrypt_value(value_b, &old_key).unwrap();
+        let created_b = create_api_key(&conn, &make_key_input(&proj.id, "Key B"), &encrypted_b).unwrap();
+
+        // --- Simulate change_master_password's re-encryption loop verbatim ---
+        for (key_id, _name, encrypted, _p, _m, _s, _e, enc_accounts) in &get_all_encrypted_keys(&conn).unwrap() {
+            let plain = crate::crypto::decrypt_value(encrypted, &old_key).unwrap();
+            let re_encrypted = crate::crypto::encrypt_value(&plain, &new_key).unwrap();
+            conn.execute("UPDATE api_keys SET encrypted_value = ?1 WHERE id = ?2", params![re_encrypted, key_id]).unwrap();
+
+            if let Some(acc) = enc_accounts {
+                if !acc.is_empty() {
+                    let acc_plain = crate::crypto::decrypt_value(acc, &old_key).unwrap();
+                    let acc_re = crate::crypto::encrypt_value(&acc_plain, &new_key).unwrap();
+                    conn.execute("UPDATE api_keys SET encrypted_accounts = ?1 WHERE id = ?2", params![acc_re, key_id]).unwrap();
+                }
+            }
+        }
+
+        // --- Verify: NEW key opens everything correctly ---
+        let stored_value_a = get_encrypted_value(&conn, &created_a.id).unwrap();
+        assert_eq!(crate::crypto::decrypt_value(&stored_value_a, &new_key).unwrap(), value_a);
+
+        let stored_accounts_a = get_encrypted_accounts(&conn, &created_a.id).unwrap().unwrap();
+        let decrypted_accounts_a = crate::crypto::decrypt_value(&stored_accounts_a, &new_key).unwrap();
+        assert_eq!(decrypted_accounts_a, accounts_json, "accounts JSON must survive re-encryption byte-for-byte");
+        assert!(decrypted_accounts_a.contains("super-secret-pw"));
+
+        let stored_value_b = get_encrypted_value(&conn, &created_b.id).unwrap();
+        assert_eq!(crate::crypto::decrypt_value(&stored_value_b, &new_key).unwrap(), value_b);
+        assert_eq!(get_encrypted_accounts(&conn, &created_b.id).unwrap(), None, "key with no accounts must remain untouched");
+
+        // --- Verify: OLD key can no longer decrypt (proves re-encryption actually happened) ---
+        assert!(crate::crypto::decrypt_value(&stored_value_a, &old_key).is_err());
+        assert!(crate::crypto::decrypt_value(&stored_accounts_a, &old_key).is_err());
+    }
 }

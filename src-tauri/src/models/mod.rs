@@ -24,6 +24,19 @@ pub struct ApiKey {
     pub reference_urls: Option<String>, // JSON: [{"label":"문서","url":"https://..."}]
     pub created_at: String,
     pub updated_at: String,
+    pub has_accounts: bool, // true if an encrypted accounts blob exists (cheap flag; never carries secret data)
+}
+
+/// One login/credential set attached to an ApiKey. Stored client-side only inside the
+/// encrypted `accounts` blob (see crypto::encrypt_value) — never persisted in plaintext.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AccountEntry {
+    pub label: String,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub site_url: Option<String>,
+    pub key_value: Option<String>,
+    pub expires_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
