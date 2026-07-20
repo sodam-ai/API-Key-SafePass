@@ -20,11 +20,21 @@ export interface ApiKey {
   reference_urls: string | null; // JSON: [{"label":"문서","url":"https://..."}]
   created_at: string;
   updated_at: string;
+  has_accounts: boolean;
 }
 
 export interface ReferenceUrl {
   label: string;
   url: string;
+}
+
+export interface AccountEntry {
+  label: string;
+  username?: string;
+  password?: string;
+  site_url?: string;
+  key_value?: string;
+  expires_at?: string;
 }
 
 export interface Tag {

@@ -39,17 +39,22 @@ export default function LockScreen({ isFirstTime, onUnlocked, onRecoveryKey }: L
       else {
         const c = failCount + 1;
         setFailCount(c);
-        if (c >= 10) {
-          setLocked(true);
-          setError("10회 실패! 5분 후 다시 시도해주세요");
-          setTimeout(() => { setLocked(false); setFailCount(0); setError(""); }, 5 * 60_000);
-        } else if (c >= 5) {
-          setLocked(true);
-          setError(`${c}회 실패! 60초 후 다시 시도해주세요`);
-          setTimeout(() => { setLocked(false); setError(""); }, 60_000);
-        } else { setError(`비밀번호가 틀렸습니다 (${c}/10)`); }
+        setError(`비밀번호가 틀렸습니다 (${c}번째 시도)`);
       }
-    } catch (e) { setError(String(e)); }
+    } catch (e) {
+      // The backend enforces the real, DB-persisted lockout (survives app restart,
+      // unlike a purely in-memory counter would) and returns the wait time in its
+      // own message — parse and mirror it here instead of keeping a separate,
+      // resettable frontend lockout that could disagree with what's actually enforced.
+      const msg = String(e);
+      setError(msg);
+      const match = msg.match(/(\d+)초/);
+      if (match) {
+        const seconds = parseInt(match[1], 10);
+        setLocked(true);
+        setTimeout(() => { setLocked(false); setError(""); }, seconds * 1000);
+      }
+    }
     finally { setLoading(false); }
   };
 

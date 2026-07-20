@@ -41,3 +41,13 @@ npm-debug.log*
 
 # Preview images (generated)
 app-icon-preview.png
+
+# Claude Code plugin/tool session artifacts (local only, not project files)
+.omc/
+.complexity-log.md
+.pair-programming-session.md
+.plugin-config/
+.todos-report.md/
+
+# Local-only work tracking (not for the public repo)
+CHECKPOINT.md

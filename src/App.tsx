@@ -10,6 +10,8 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import SearchModal from "./components/Search/SearchModal";
 import KeyFormModal from "./components/KeyForm/KeyFormModal";
 import ChangePasswordModal from "./components/Settings/ChangePasswordModal";
+import RegenerateRecoveryModal from "./components/Settings/RegenerateRecoveryModal";
+import RestoreVaultModal from "./components/Settings/RestoreVaultModal";
 import SettingsModal from "./components/Settings/SettingsModal";
 import { useAutoLock } from "./hooks/useAutoLock";
 import { useWindowBlur } from "./hooks/useWindowBlur";
@@ -27,6 +29,8 @@ export default function App() {
   const [showSearch, setShowSearch] = useState(false);
   const [showGlobalAdd, setShowGlobalAdd] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showRegenerateRecovery, setShowRegenerateRecovery] = useState(false);
+  const [showRestoreVault, setShowRestoreVault] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [inlineSearch, setInlineSearch] = useState("");
   const [prefs, setPrefs] = useState<AppPreferences>(DEFAULT_PREFS);
@@ -237,11 +241,21 @@ export default function App() {
           onClose={() => setShowSettings(false)}
           onSaved={(p) => { setPrefs(p); setShowSettings(false); }}
           onChangePassword={() => { setShowSettings(false); setTimeout(() => setShowChangePassword(true), 100); }}
+          onRegenerateRecovery={() => { setShowSettings(false); setTimeout(() => setShowRegenerateRecovery(true), 100); }}
+          onRestoreVault={() => setShowRestoreVault(true)}
         />
       )}
 
       {showChangePassword && (
         <ChangePasswordModal onClose={() => setShowChangePassword(false)} onChanged={() => setShowChangePassword(false)} />
+      )}
+
+      {showRegenerateRecovery && (
+        <RegenerateRecoveryModal onClose={() => setShowRegenerateRecovery(false)} onDone={() => setShowRegenerateRecovery(false)} />
+      )}
+
+      {showRestoreVault && (
+        <RestoreVaultModal onClose={() => setShowRestoreVault(false)} onStaged={() => setShowRestoreVault(false)} />
       )}
 
       {showSearch && <SearchModal projects={projects} onClose={() => setShowSearch(false)} />}

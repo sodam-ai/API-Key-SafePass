@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { save, open } from "@tauri-apps/plugin-dialog";
 import type { ApiKeyWithTags, Project, ReferenceUrl } from "../../types";
 import * as api from "../../lib/tauri";
 import { useClipboard } from "../../hooks/useClipboard";
@@ -24,6 +25,7 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
   const [quickUpdateKey, setQuickUpdateKey] = useState<ApiKeyWithTags | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const { copyWithAutoClear } = useClipboard(clipboardClearSec * 1000);
 
   const handleCopy = async (keyId: string) => {
@@ -53,12 +55,39 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
     setExporting(true);
     try {
       const envContent = await api.exportEnv(projectId);
-      await copyWithAutoClear(envContent);
-      alert(".env 내용이 클립보드에 복사되었습니다!\n파일로 저장하려면 프로젝트 폴더에 .env 파일을 만들어 붙여넣기 하세요.");
+      const project = projects.find((p) => p.id === projectId);
+      const path = await save({
+        defaultPath: `${project?.name || "keys"}.env`,
+        filters: [{ name: "Env", extensions: ["env"] }],
+      });
+      if (path) {
+        await api.writeTextFile(path, envContent);
+        alert(".env 파일이 저장되었습니다.");
+      }
     } catch (e) {
       alert(String(e));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleImportEnv = async () => {
+    if (!projectId) return;
+    const picked = await open({
+      filters: [{ name: "Env", extensions: ["env"] }],
+      multiple: false,
+    });
+    if (!picked || Array.isArray(picked)) return;
+    setImporting(true);
+    try {
+      const content = await api.readTextFile(picked);
+      const count = await api.importEnv(projectId, content);
+      onKeysChanged();
+      alert(`${count}개의 키를 가져왔습니다.`);
+    } catch (e) {
+      alert(String(e));
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -87,6 +116,19 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
           <span className="text-sm text-zinc-500 tabular-nums">{keys.length}개</span>
         </div>
         <div className="flex items-center gap-2">
+          {projectId && (
+            <button
+              onClick={handleImportEnv}
+              disabled={importing}
+              className="px-3 py-1.5 bg-zinc-800/80 hover:bg-zinc-700 rounded-lg text-xs transition-colors flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200"
+              title=".env 파일에서 가져오기"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 7.5L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              가져오기
+            </button>
+          )}
           {projectId && keys.length > 0 && (
             <button
               onClick={handleExportEnv}
@@ -183,6 +225,14 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
                               {k.env_var_name}
                             </span>
                           )}
+                          {k.has_accounts && (
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[11px] font-medium text-vault-400 bg-vault-600/10 border border-vault-600/20"
+                              title="아이디·비밀번호 등 추가 계정 정보 있음"
+                            >
+                              계정+
+                            </span>
+                          )}
                           {days !== null && (
                             <span className={`px-2 py-0.5 rounded-md border text-[11px] font-mono font-semibold ${expiryBg(days)} ${expiryColor(days)}`}>
                               {expiryText(days)}
@@ -208,6 +258,21 @@ export default function KeyList({ projectId, platformName, isAllView, projects, 
                             <span className="text-[11px] text-zinc-600">사용 {relativeDate(k.last_used_at)}</span>
                           )}
                         </div>
+
+                        {/* Tags */}
+                        {k.tags.length > 0 && (
+                          <div className="flex items-center gap-1.5 pl-4 mt-1.5 flex-wrap">
+                            {k.tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-1.5 py-0.5 rounded text-[10px] font-medium text-white"
+                                style={{ backgroundColor: tag.color || "#4c6ef5" }}
+                              >
+                                #{tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Reference URLs */}
                         {k.reference_urls && (() => {
