@@ -6,7 +6,6 @@
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](#download)
 
 **Language**: English (this document) · [한국어](./README.md)
-**Need a beginner-friendly walkthrough?** → [GUIDE.en.md](./GUIDE.en.md) (click-by-click instructions for people new to computers)
 
 ---
 
@@ -303,7 +302,6 @@ C:\Users\<your-username>\AppData\Roaming\com.apikeyvault.app\vault.db
 |---|---|---|
 | This document | `README.md` | Full project overview (Korean, primary) |
 | This document | `README.en.md` | English translation (this file) |
-| Beginner guide | `GUIDE.md` / `GUIDE.en.md` | Click-by-click install/usage guide for people new to computers |
 | Testing guide | `TESTING_GUIDE.ko.md` | Detailed test procedures used by developers to verify features |
 | Work checkpoint | `CHECKPOINT.md` | Tracks upcoming work and its risks (development progress tracking) |
 | Planning docs | `.PRD/` folder | Design/planning documents explaining why and how this app was built |

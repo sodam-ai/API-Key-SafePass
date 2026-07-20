@@ -6,7 +6,6 @@
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](#다운로드-방법)
 
 **언어**: 한국어(현재 문서) · [English](./README.en.md)
-**왕초보 가이드가 필요하신가요?** → [GUIDE.md](./GUIDE.md) (컴퓨터가 낯선 분들을 위한 클릭 단위 안내서)
 
 ---
 
@@ -302,7 +301,6 @@ C:\Users\<내 사용자 이름>\AppData\Roaming\com.apikeyvault.app\vault.db
 |---|---|---|
 | 이 문서 | `README.md` | 전체 프로젝트 개요 (지금 보고 있는 문서) |
 | 영문 버전 | `README.en.md` | 위 문서의 영어 번역 |
-| 왕초보 가이드 | `GUIDE.md` / `GUIDE.en.md` | 컴퓨터가 낯선 분들을 위한 클릭 단위 설치·사용 안내 |
 | 테스트 가이드 | `TESTING_GUIDE.ko.md` | 개발자가 기능을 검증할 때 쓰는 상세 테스트 절차 |
 | 작업 체크포인트 | `CHECKPOINT.md` | 다음에 이어서 할 작업과 위험 요소 기록 (개발 진행 상황 추적용) |
 | 기획 문서 | `.PRD/` 폴더 | 이 앱을 왜, 어떻게 만들었는지에 대한 기획·설계 문서 |
